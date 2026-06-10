@@ -1,0 +1,140 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Script file="UI.lua"/>
+
+	<!-- Accordion section header, styled like the Currency tab's headers -->
+	<Button name="GearUpgradeCostTabHeaderTemplate" inherits="ListHeaderThreeSliceTemplate" mixin="GearUpgradeCostTabHeaderMixin" virtual="true">
+		<Scripts>
+			<OnLoad method="OnLoadHeader" inherit="append"/>
+		</Scripts>
+	</Button>
+
+	<!-- One equipped item: slot, item level, upgrade track, crest costs -->
+	<Button name="GearUpgradeCostTabRowTemplate" mixin="GearUpgradeCostTabRowMixin" virtual="true">
+		<Size y="22"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="SlotName" inherits="GameFontHighlight" justifyH="LEFT">
+					<Size x="78" y="0"/>
+					<Anchors>
+						<Anchor point="LEFT" x="6"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="ItemLevel" inherits="GameFontHighlight" justifyH="RIGHT">
+					<Size x="30" y="0"/>
+					<Anchors>
+						<Anchor point="LEFT" x="88"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Track" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="98" y="0"/>
+					<Anchors>
+						<Anchor point="LEFT" x="138"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="TotalCost" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+					<Size x="58" y="0"/>
+					<Anchors>
+						<Anchor point="RIGHT" x="-4"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="NextCost" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+					<Size x="58" y="0"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativeKey="$parent.TotalCost" relativePoint="LEFT" x="-8"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD" setAllPoints="true"/>
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Button>
+
+	<!-- Invisible spacer between sections; actual height comes from the
+	     element data via the view's extent calculator in UI.lua -->
+	<Frame name="GearUpgradeCostTabSpacerTemplate" virtual="true">
+		<Size y="4"/>
+	</Frame>
+
+	<!-- Informational row (used by the empty "In Bag" section) -->
+	<Frame name="GearUpgradeCostTabNoteTemplate" mixin="GearUpgradeCostTabNoteMixin" virtual="true">
+		<Size y="20"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontDisableSmall" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="LEFT" x="10"/>
+						<Anchor point="RIGHT" x="-10"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<!-- The 4th character frame subframe; layout mirrors Blizzard's TokenFrame -->
+	<Frame name="GearUpgradeCostTabFrame" parent="CharacterFrame" setAllPoints="true" useParentLevel="true" enableMouse="true" mixin="GearUpgradeCostTabMixin" hidden="true" id="4">
+		<Frames>
+			<Frame parentKey="ScrollBox" inherits="WowScrollBoxList" frameStrata="HIGH">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.$parent.Inset" x="4" y="-28"/>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent.Inset" x="-22" y="2"/>
+				</Anchors>
+			</Frame>
+
+			<EventFrame parentKey="ScrollBar" inherits="MinimalScrollBar" frameStrata="HIGH">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPRIGHT" x="5" y="-2"/>
+					<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="BOTTOMRIGHT" x="5" y="4"/>
+				</Anchors>
+			</EventFrame>
+
+			<DropdownButton parentKey="CostModeDropdown" inherits="WowStyle1DropdownTemplate">
+				<Anchors>
+					<!-- Right edge flush with the list inset below, 4px above it -->
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent.Inset" relativePoint="TOPRIGHT" x="0" y="4"/>
+				</Anchors>
+			</DropdownButton>
+		</Frames>
+		<Layers>
+			<Layer level="ARTWORK">
+				<!-- Column labels, aligned with the row template's columns -->
+				<FontString parentKey="ColSlot" inherits="GameFontDisableSmall" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPLEFT" x="10" y="6"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="ColItemLevel" inherits="GameFontDisableSmall" justifyH="RIGHT">
+					<Size x="30" y="0"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPLEFT" x="92" y="6"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="ColUpgrade" inherits="GameFontDisableSmall" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPLEFT" x="142" y="6"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="ColTotalCost" inherits="GameFontDisableSmall" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ScrollBox" relativePoint="TOPRIGHT" x="-8" y="6"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="ColNextCost" inherits="GameFontDisableSmall" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ScrollBox" relativePoint="TOPRIGHT" x="-74" y="6"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnEvent method="OnEvent"/>
+		</Scripts>
+	</Frame>
+</Ui>
