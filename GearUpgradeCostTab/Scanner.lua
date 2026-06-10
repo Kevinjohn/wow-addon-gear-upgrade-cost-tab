@@ -5,12 +5,25 @@ local _, ns = ...
 -- is closed. We derive a match pattern from Blizzard's own format string so
 -- it keeps working across locales, with a plain-text fallback.
 local upgradePattern -- nil = not built yet, false = global string unavailable
+-- For each capture in upgradePattern, the format argument it renders:
+-- 1 = track name (%s), 2 = current rank, 3 = max rank. Derived rather than
+-- assumed because positional locales ("%2$d/%3$d %1$s") may both move and
+-- renumber the specifiers, including printing max before current.
+local upgradeCaptureArgs
 
 local function BuildUpgradePattern()
 	local format = ITEM_UPGRADE_TOOLTIP_FORMAT_STRING
 	if type(format) ~= "string" then
 		return false
 	end
+	-- Record each specifier's explicit argument index ("%2$d" -> 2) or,
+	-- when unnumbered, its sequential position.
+	local args, autoIndex = {}, 0
+	for index in format:gmatch("%%(%d*)%$?[sd]") do
+		autoIndex = autoIndex + 1
+		args[#args + 1] = tonumber(index) or autoIndex
+	end
+	upgradeCaptureArgs = args
 	-- Swap format specifiers for placeholders, escape Lua pattern magic
 	-- characters, then turn the placeholders into captures.
 	format = format:gsub("%%%d*%$?s", "\001"):gsub("%%%d*%$?d", "\002")
@@ -25,31 +38,40 @@ local function ParseUpgradeLine(text)
 	end
 
 	if upgradePattern then
-		local a, b, c = text:match(upgradePattern)
-		if a then
-			-- Locales may reorder the captures; the non-numeric one is the
-			-- track name, the numeric ones are current/max rank in order.
-			local numbers, track = {}, nil
-			for _, capture in ipairs({ a, b, c }) do
-				local number = tonumber(capture)
-				if number then
-					numbers[#numbers + 1] = number
-				else
-					track = capture
-				end
+		local captures = { text:match(upgradePattern) }
+		if captures[1] ~= nil and #captures == #upgradeCaptureArgs then
+			-- Route each capture back to the argument it rendered.
+			local byArg = {}
+			for index, capture in ipairs(captures) do
+				byArg[upgradeCaptureArgs[index]] = capture
 			end
-			if track and #numbers == 2 then
-				return strtrim(track), numbers[1], numbers[2]
+			local track = byArg[1]
+			local current, max = tonumber(byArg[2]), tonumber(byArg[3])
+			if track and not tonumber(track) and current and max then
+				return strtrim(track), current, max
 			end
 		end
 	end
 
-	-- Fallback: "... Champion 5/6". Only trusted when the captured name is a
-	-- known track, so lines like durability or set counts can't false-match.
-	local track, current, max = text:match("([%a%s]+)%s+(%d+)/(%d+)%s*$")
-	if track then
-		track = strtrim(track)
-		if ns.TRACKS[track] then
+	-- Fallback: "... Champion 5/6". The name capture allows any characters
+	-- ("%a" is ASCII-only, which would reject "Vétéran" or "Ветеран"), with
+	-- a leading "Upgrade Level:"-style prefix stripped at the last colon.
+	-- Only trusted when the name maps to a known track, so lines like
+	-- durability or set counts can't false-match. The plain find skips the
+	-- vast majority of lines at memchr speed; the match itself is anchored
+	-- because an unanchored leading "(.-)" makes every non-matching line an
+	-- O(n^2) scan for identical results (the lazy capture already absorbs
+	-- any prefix). No-break spaces (some locales use U+00A0/U+202F around
+	-- the colon) are folded to plain spaces first, since neither %s nor
+	-- strtrim treats them as whitespace.
+	if not text:find("/", 1, true) then
+		return nil
+	end
+	local normalized = text:gsub("\194\160", " "):gsub("\226\128\175", " ")
+	local track, current, max = normalized:match("^(.-)%s+(%d+)/(%d+)%s*$")
+	if track and track ~= "" then
+		track = strtrim(track:match("[^:]*$"))
+		if ns.GetTrackInfo(track) then
 			return track, tonumber(current), tonumber(max)
 		end
 	end

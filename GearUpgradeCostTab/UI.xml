@@ -11,7 +11,12 @@
 	</Button>
 
 	<!-- One equipped item: item level, slot, upgrade track, crest costs.
-	     Item level leads so it lines up with the bag-row templates below. -->
+	     Item level leads so it lines up with the bag-row templates below.
+	     The track column is two regions so a long localized track name
+	     ("Искатель приключений") truncates with an ellipsis while the rank
+	     ("4/6") stays visible. TotalCost/NextCost/TrackRank are declared
+	     before Track because each right anchor references the previous
+	     region (regions resolve in document order). -->
 	<Button name="GearUpgradeCostTabRowTemplate" mixin="GearUpgradeCostTabRowMixin" virtual="true">
 		<Size y="22"/>
 		<Layers>
@@ -28,12 +33,6 @@
 						<Anchor point="LEFT" x="60"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="Track" inherits="GameFontHighlightSmall" justifyH="LEFT">
-					<Size x="98" y="0"/>
-					<Anchors>
-						<Anchor point="LEFT" x="140"/>
-					</Anchors>
-				</FontString>
 				<FontString parentKey="TotalCost" inherits="GameFontHighlightSmall" justifyH="RIGHT">
 					<Size x="44" y="0"/>
 					<Anchors>
@@ -44,6 +43,18 @@
 					<Size x="44" y="0"/>
 					<Anchors>
 						<Anchor point="RIGHT" relativeKey="$parent.TotalCost" relativePoint="LEFT" x="-4"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="TrackRank" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+					<Size x="30" y="0"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativeKey="$parent.NextCost" relativePoint="LEFT" x="-6"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Track" inherits="GameFontHighlightSmall" justifyH="LEFT" wordwrap="false">
+					<Anchors>
+						<Anchor point="LEFT" x="140"/>
+						<Anchor point="RIGHT" relativeKey="$parent.TrackRank" relativePoint="LEFT" x="-4"/>
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -150,9 +161,11 @@
 		</Frames>
 		<Layers>
 			<Layer level="ARTWORK">
-				<!-- Column labels, aligned with the row template's columns -->
-				<FontString parentKey="ColItemLevel" inherits="GameFontDisableSmall" justifyH="RIGHT">
-					<Size x="30" y="0"/>
+				<!-- Column labels, aligned with the row template's columns.
+				     ColItemLevel auto-sizes: Blizzard's localized
+				     ITEM_LEVEL_ABBR runs from "St." to "Ур. пр.", and a
+				     fixed 30px box would ellipsize the wider ones. -->
+				<FontString parentKey="ColItemLevel" inherits="GameFontDisableSmall" justifyH="LEFT">
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPLEFT" x="10" y="6"/>
 					</Anchors>

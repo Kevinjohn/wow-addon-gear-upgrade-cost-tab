@@ -50,12 +50,15 @@ function GearUpgradeCostTabRowMixin:Initialize(elementData)
 	if not (elementData.track and elementData.rank and elementData.maxRank) then
 		-- No upgrade line on the tooltip (crafted, legacy, heirloom, ...)
 		self.Track:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(L.DASH))
+		self.TrackRank:SetText("")
 		self.NextCost:SetText("")
 		self.TotalCost:SetText("")
 		return
 	end
 
-	local trackText = ("%s %d/%d"):format(elementData.track, elementData.rank, elementData.maxRank)
+	-- Name and rank are separate regions: long localized track names
+	-- truncate with an ellipsis while the rank stays visible.
+	local rankText = ("%d/%d"):format(elementData.rank, elementData.maxRank)
 	local trackInfo = ns.GetTrackInfo(elementData.track)
 	local costs = ns.GetCosts(trackInfo, elementData.rank, elementData.maxRank, elementData.mode, elementData.itemLink, elementData.itemLevel)
 
@@ -64,11 +67,13 @@ function GearUpgradeCostTabRowMixin:Initialize(elementData)
 		-- upgrades, so finished items should recede, not pop green.
 		self.SlotName:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(elementData.label))
 		self.ItemLevel:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(tostring(elementData.itemLevel or "")))
-		self.Track:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(trackText))
+		self.Track:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(elementData.track))
+		self.TrackRank:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(rankText))
 		self.NextCost:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(L.DASH))
 		self.TotalCost:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(L.DASH))
 	elseif costs then
-		self.Track:SetText(trackText)
+		self.Track:SetText(elementData.track)
+		self.TrackRank:SetText(rankText)
 		if costs.nextIsFree then
 			self.NextCost:SetText(GREEN_FONT_COLOR:WrapTextInColorCode(L.FREE))
 		else
@@ -77,7 +82,8 @@ function GearUpgradeCostTabRowMixin:Initialize(elementData)
 		self.TotalCost:SetText(ns.FormatCost(costs.totalCost, trackInfo))
 	else
 		-- Track parsed from the tooltip but unknown to Data.lua
-		self.Track:SetText(trackText)
+		self.Track:SetText(elementData.track)
+		self.TrackRank:SetText(rankText)
 		self.NextCost:SetText(L.UNKNOWN_COST)
 		self.TotalCost:SetText(L.UNKNOWN_COST)
 	end
@@ -207,7 +213,9 @@ function GearUpgradeCostTabMixin:OnLoad()
 
 	ScrollUtil.InitScrollBoxListWithScrollBar(self.ScrollBox, self.ScrollBar, view)
 
-	self.CostModeDropdown:SetWidth(130)
+	-- Width is a locale value: "Discount aware" fits in 130px but e.g.
+	-- ruRU's "Базовая стоимость" needs more before it ellipsizes.
+	self.CostModeDropdown:SetWidth(L.COST_MODE_WIDTH)
 
 	self.ColSlot:SetText(L.COL_SLOT)
 	self.ColItemLevel:SetText(L.COL_ILVL)

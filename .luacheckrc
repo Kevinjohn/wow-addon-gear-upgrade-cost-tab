@@ -4,6 +4,7 @@ self = false
 
 exclude_files = {
 	".luacheckrc",
+	"tests/*.lua", -- plain Lua run outside the WoW sandbox
 }
 
 -- Globals this addon defines (XML-referenced mixins and saved variables),
@@ -58,8 +59,10 @@ read_globals = {
 	-- API functions
 	"GetInventoryItemLink",
 	"GetAchievementInfo",
+	"GetLocale",
 
 	-- Global strings and constants
+	"EQUIPPED", "ITEM_LEVEL_ABBR",
 	"ITEM_UPGRADE_TOOLTIP_FORMAT_STRING",
 	"ITEM_ACCOUNTBOUND_UNTIL_EQUIP",
 	"ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP",

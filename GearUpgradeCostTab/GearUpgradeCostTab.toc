@@ -1,10 +1,26 @@
 ## Interface: 120005
 ## Title: Gear Upgrade Cost Tab
 ## Notes: Adds a "Gear Upgrades" tab to the character frame showing item level, upgrade track, and crest costs for equipped gear.
+## Notes-deDE: Fügt dem Charakterfenster einen Reiter "Aufwertungen" hinzu, der Gegenstandsstufe, Aufwertungspfad und Wappenkosten der angelegten Ausrüstung zeigt.
+## Notes-frFR: Ajoute un onglet "Améliorations" à la fenêtre du personnage avec le niveau d’objet, le niveau d’amélioration et le coût en écus de l’équipement.
+## Notes-esES: Añade una pestaña "Mejoras" a la ventana del personaje con el nivel de objeto, el nivel de mejora y el coste en blasones del equipo.
+## Notes-esMX: Añade una pestaña "Mejoras" a la ventana del personaje con el nivel de objeto, el nivel de mejora y el coste en blasones del equipo.
+## Notes-itIT: Aggiunge una scheda "Potenziamenti" alla finestra del personaggio con livello degli oggetti, livello di potenziamento e costi in emblemi dell'equipaggiamento.
+## Notes-ptBR: Adiciona uma aba "Aprimoramentos" à janela do personagem com nível de item, nível de aprimoramento e custos em brasões do equipamento.
+## Notes-ptPT: Adiciona uma aba "Aprimoramentos" à janela do personagem com nível de item, nível de aprimoramento e custos em brasões do equipamento.
+## Notes-ruRU: Добавляет в окно персонажа вкладку "Улучшения" с уровнем предметов, уровнем улучшения и стоимостью в гербах для надетой экипировки.
 ## Author: Kevinjohn Gallagher
-## Version: 0.2.0
+## Version: 0.3.0
 ## IconTexture: Interface\Icons\INV_Misc_ArmorKit_17
 ## SavedVariables: GearUpgradeCostTabDB
+
+Locales\enUS.lua
+Locales\deDE.lua
+Locales\frFR.lua
+Locales\esES.lua
+Locales\itIT.lua
+Locales\ptBR.lua
+Locales\ruRU.lua
 
 Data.lua
 Scanner.lua
