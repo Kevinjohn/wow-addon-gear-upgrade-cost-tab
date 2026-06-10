@@ -13,6 +13,7 @@ globals = {
 	"GearUpgradeCostTabMixin",
 	"GearUpgradeCostTabHeaderMixin",
 	"GearUpgradeCostTabRowMixin",
+	"GearUpgradeCostTabBagRowMixin",
 	"GearUpgradeCostTabNoteMixin",
 	"GearUpgradeCostTabFrame",
 	"CharacterFrame",
@@ -48,6 +49,7 @@ read_globals = {
 
 	-- C_* namespaces
 	"C_Item",
+	"C_Container",
 	"C_TooltipInfo",
 	"C_CurrencyInfo",
 	"C_ItemUpgrade",
@@ -59,10 +61,14 @@ read_globals = {
 
 	-- Global strings and constants
 	"ITEM_UPGRADE_TOOLTIP_FORMAT_STRING",
+	"ITEM_ACCOUNTBOUND_UNTIL_EQUIP",
+	"ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP",
+	"NUM_TOTAL_EQUIPPED_BAG_SLOTS",
 	"NORMAL_FONT_COLOR", "GREEN_FONT_COLOR", "GRAY_FONT_COLOR",
 	"HEADSLOT", "NECKSLOT", "SHOULDERSLOT", "BACKSLOT", "CHESTSLOT",
 	"WRISTSLOT", "HANDSSLOT", "WAISTSLOT", "LEGSSLOT", "FEETSLOT",
-	"FINGER0SLOT", "TRINKET0SLOT", "MAINHANDSLOT", "SECONDARYHANDSLOT",
+	"FINGER0SLOT", "TRINKET0SLOT", "MAINHANDSLOT",
+	"INVTYPE_WEAPONOFFHAND",
 	"INVSLOT_HEAD", "INVSLOT_NECK", "INVSLOT_SHOULDER", "INVSLOT_BACK",
 	"INVSLOT_CHEST", "INVSLOT_WRIST", "INVSLOT_HAND", "INVSLOT_WAIST",
 	"INVSLOT_LEGS", "INVSLOT_FEET", "INVSLOT_FINGER1", "INVSLOT_FINGER2",

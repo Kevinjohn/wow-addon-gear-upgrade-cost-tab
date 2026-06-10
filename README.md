@@ -7,7 +7,20 @@ A World of Warcraft (retail, Midnight 12.0.x) addon that adds a fourth **"Gear U
   - upgrade track and rank (e.g. `Champion 5/6`)
   - Dawncrest cost to the next rank
   - Dawncrest cost to fully upgrade to 6/6
-- **In Bag** — placeholder for a future update.
+- **In Bag (next upgrade free)** (open by default) — bag items whose next
+  upgrade costs no crests because they sit below the slot's best-known item
+  level (the watermark — at minimum, what you have equipped in that slot).
+  Great for the rings and trinkets you keep for their stats or effects and
+  forget to upgrade. Shows item level, slot, name, a green **Free** marker,
+  and the crest cost for any ranks beyond the free ones (`Free` again if the
+  whole path is gold-only).
+- **In Bag (crest required)** (collapsed by default) — bag items whose next
+  upgrade costs crests. The two bag lists are exclusive: an item appears in
+  whichever matches its *next* rank.
+
+"Warbound until equipped" items are excluded from the bag lists (matched
+against the `ITEM_ACCOUNTBOUND_UNTIL_EQUIP` / `ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP`
+tooltip lines, so it is locale-safe); a toggle for this is planned.
 
 A dropdown at the top (like the Reputation tab's filter) switches between:
 
@@ -37,7 +50,7 @@ The Midnight upgrade-cost numbers in `GearUpgradeCostTab/Data.lua` come from thi
 - ✅ **Costs and tooltip parsing** — per-rank crest costs and track/rank parsing confirmed correct against live gear.
 - ✅ **Dawncrest currency IDs** — Adventurer **3383**, Veteran 3341, Champion 3343, Hero 3345 confirmed (icons render). **Myth (3347) untested** until Myth-track gear is available; if its icon is missing, find the right ID via `/dump C_CurrencyInfo.GetCurrencyInfo(3347)`.
 - ⚠️ **Discount achievement IDs** — only Adventurer has a candidate ID (61809), guarded by a name check; fill in the others in `ns.TRACKS` once confirmed (search "of the Dawn" in the achievement pane and shift-link to get IDs).
-- ⚠️ **High-watermark API** — discount mode probes `C_ItemUpgrade.GetHighWatermarkForItem` defensively; if it is missing or behaves differently in 12.0, "Free" markers simply won't appear.
+- ⚠️ **High-watermark API** — `C_ItemUpgrade.GetHighWatermarkForItem` takes an item link and returns character/account watermarks (signature wiki-verified for 12.0.1), but the values' in-game semantics are unverified, so it is probed defensively. The Free Upgrades section also falls back to comparing against the item level you have equipped in the slot, which can only under-report, never falsely mark an upgrade free.
 - **`## Interface:` number** — bump `GearUpgradeCostTab.toc` when patches flag the addon as out of date.
 
 ## Files
@@ -46,7 +59,7 @@ The Midnight upgrade-cost numbers in `GearUpgradeCostTab/Data.lua` come from thi
 | --- | --- |
 | `GearUpgradeCostTab.toc` | Addon manifest |
 | `Data.lua` | Slot order, upgrade-track/cost/currency/achievement data, cost math |
-| `Scanner.lua` | Reads equipped items and parses upgrade track/rank from tooltip data |
+| `Scanner.lua` | Reads equipped and bag items and parses upgrade track/rank from tooltip data |
 | `UI.xml` | Row/header templates and the panel (mirrors Blizzard's `Blizzard_TokenUI`) |
 | `UI.lua` | Mixins, character-frame tab integration, dropdown, scroll list |
 
@@ -58,3 +71,5 @@ The Midnight upgrade-cost numbers in `GearUpgradeCostTab/Data.lua` come from thi
 - Midnight's addon restrictions ("Secret Values") only affect real-time combat data; this out-of-combat UI addon is unaffected.
 
 Lint with [luacheck](https://github.com/lunarmodules/luacheck): `luacheck GearUpgradeCostTab/` (config in `.luacheckrc`).
+
+Release notes live in [CHANGELOG.md](CHANGELOG.md).

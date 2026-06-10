@@ -10,39 +10,88 @@
 		</Scripts>
 	</Button>
 
-	<!-- One equipped item: slot, item level, upgrade track, crest costs -->
+	<!-- One equipped item: item level, slot, upgrade track, crest costs.
+	     Item level leads so it lines up with the bag-row templates below. -->
 	<Button name="GearUpgradeCostTabRowTemplate" mixin="GearUpgradeCostTabRowMixin" virtual="true">
 		<Size y="22"/>
 		<Layers>
 			<Layer level="ARTWORK">
-				<FontString parentKey="SlotName" inherits="GameFontHighlight" justifyH="LEFT">
-					<Size x="78" y="0"/>
+				<FontString parentKey="ItemLevel" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+					<Size x="30" y="0"/>
 					<Anchors>
 						<Anchor point="LEFT" x="6"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="ItemLevel" inherits="GameFontHighlight" justifyH="RIGHT">
-					<Size x="30" y="0"/>
+				<FontString parentKey="SlotName" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="68" y="0"/>
 					<Anchors>
-						<Anchor point="LEFT" x="88"/>
+						<Anchor point="LEFT" x="60"/>
 					</Anchors>
 				</FontString>
 				<FontString parentKey="Track" inherits="GameFontHighlightSmall" justifyH="LEFT">
 					<Size x="98" y="0"/>
 					<Anchors>
-						<Anchor point="LEFT" x="138"/>
+						<Anchor point="LEFT" x="140"/>
 					</Anchors>
 				</FontString>
 				<FontString parentKey="TotalCost" inherits="GameFontHighlightSmall" justifyH="RIGHT">
-					<Size x="58" y="0"/>
+					<Size x="44" y="0"/>
 					<Anchors>
 						<Anchor point="RIGHT" x="-4"/>
 					</Anchors>
 				</FontString>
 				<FontString parentKey="NextCost" inherits="GameFontHighlightSmall" justifyH="RIGHT">
-					<Size x="58" y="0"/>
+					<Size x="44" y="0"/>
 					<Anchors>
-						<Anchor point="RIGHT" relativeKey="$parent.TotalCost" relativePoint="LEFT" x="-8"/>
+						<Anchor point="RIGHT" relativeKey="$parent.TotalCost" relativePoint="LEFT" x="-4"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD" setAllPoints="true"/>
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Button>
+
+	<!-- One bag item: item level, slot, then the item name sitting where the
+	     equipped rows show the upgrade track (same small font, so the columns
+	     read as one table). TotalCost/NextCost are declared before Name
+	     because Name's right anchor references NextCost (regions resolve in
+	     document order). -->
+	<Button name="GearUpgradeCostTabBagRowTemplate" mixin="GearUpgradeCostTabBagRowMixin" virtual="true">
+		<Size y="22"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="ItemLevel" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+					<Size x="30" y="0"/>
+					<Anchors>
+						<Anchor point="LEFT" x="6"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="SlotName" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="68" y="0"/>
+					<Anchors>
+						<Anchor point="LEFT" x="60"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="TotalCost" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+					<Size x="44" y="0"/>
+					<Anchors>
+						<Anchor point="RIGHT" x="-4"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="NextCost" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+					<Size x="44" y="0"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativeKey="$parent.TotalCost" relativePoint="LEFT" x="-4"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Name" inherits="GameFontHighlightSmall" justifyH="LEFT" wordwrap="false">
+					<Anchors>
+						<Anchor point="LEFT" x="140"/>
+						<Anchor point="RIGHT" relativeKey="$parent.NextCost" relativePoint="LEFT" x="-8"/>
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -102,20 +151,20 @@
 		<Layers>
 			<Layer level="ARTWORK">
 				<!-- Column labels, aligned with the row template's columns -->
-				<FontString parentKey="ColSlot" inherits="GameFontDisableSmall" justifyH="LEFT">
+				<FontString parentKey="ColItemLevel" inherits="GameFontDisableSmall" justifyH="RIGHT">
+					<Size x="30" y="0"/>
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPLEFT" x="10" y="6"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="ColItemLevel" inherits="GameFontDisableSmall" justifyH="RIGHT">
-					<Size x="30" y="0"/>
+				<FontString parentKey="ColSlot" inherits="GameFontDisableSmall" justifyH="LEFT">
 					<Anchors>
-						<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPLEFT" x="92" y="6"/>
+						<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPLEFT" x="64" y="6"/>
 					</Anchors>
 				</FontString>
 				<FontString parentKey="ColUpgrade" inherits="GameFontDisableSmall" justifyH="LEFT">
 					<Anchors>
-						<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPLEFT" x="142" y="6"/>
+						<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPLEFT" x="144" y="6"/>
 					</Anchors>
 				</FontString>
 				<FontString parentKey="ColTotalCost" inherits="GameFontDisableSmall" justifyH="RIGHT">
@@ -125,7 +174,7 @@
 				</FontString>
 				<FontString parentKey="ColNextCost" inherits="GameFontDisableSmall" justifyH="RIGHT">
 					<Anchors>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ScrollBox" relativePoint="TOPRIGHT" x="-74" y="6"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ScrollBox" relativePoint="TOPRIGHT" x="-56" y="6"/>
 					</Anchors>
 				</FontString>
 			</Layer>

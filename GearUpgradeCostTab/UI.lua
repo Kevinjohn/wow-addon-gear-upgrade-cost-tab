@@ -57,7 +57,7 @@ function GearUpgradeCostTabRowMixin:Initialize(elementData)
 
 	local trackText = ("%s %d/%d"):format(elementData.track, elementData.rank, elementData.maxRank)
 	local trackInfo = ns.GetTrackInfo(elementData.track)
-	local costs = ns.GetCosts(trackInfo, elementData.rank, elementData.maxRank, elementData.mode, elementData.slotID, elementData.itemLevel)
+	local costs = ns.GetCosts(trackInfo, elementData.rank, elementData.maxRank, elementData.mode, elementData.itemLink, elementData.itemLevel)
 
 	if costs and costs.maxed then
 		-- Mute the whole row: this addon is about spotting remaining
@@ -94,6 +94,46 @@ function GearUpgradeCostTabRowMixin:OnLeave()
 end
 
 ------------------------------------------------------------------------------
+-- Free-upgrade bag rows
+------------------------------------------------------------------------------
+
+GearUpgradeCostTabBagRowMixin = {}
+
+function GearUpgradeCostTabBagRowMixin:Initialize(elementData)
+	self.elementData = elementData
+	self.ItemLevel:SetText(elementData.itemLevel or "")
+	self.SlotName:SetText(elementData.slotLabel or "")
+	self.Name:SetText(elementData.name or "")
+
+	-- nil costs mean the track was parsed but is unknown to Data.lua
+	local trackInfo = ns.GetTrackInfo(elementData.track)
+	if elementData.nextIsFree then
+		self.NextCost:SetText(GREEN_FONT_COLOR:WrapTextInColorCode(L.FREE))
+	elseif elementData.nextCost then
+		self.NextCost:SetText(ns.FormatCost(elementData.nextCost, trackInfo))
+	else
+		self.NextCost:SetText(L.UNKNOWN_COST)
+	end
+	if elementData.crestTotal == nil then
+		self.TotalCost:SetText(L.UNKNOWN_COST)
+	elseif elementData.crestTotal == 0 then
+		self.TotalCost:SetText(GREEN_FONT_COLOR:WrapTextInColorCode(L.FREE))
+	else
+		self.TotalCost:SetText(ns.FormatCost(elementData.crestTotal, trackInfo))
+	end
+end
+
+function GearUpgradeCostTabBagRowMixin:OnEnter()
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:SetBagItem(self.elementData.bag, self.elementData.slot)
+	GameTooltip:Show()
+end
+
+function GearUpgradeCostTabBagRowMixin:OnLeave()
+	GameTooltip:Hide()
+end
+
+------------------------------------------------------------------------------
 -- Placeholder note rows ("In Bag" is empty in v1)
 ------------------------------------------------------------------------------
 
@@ -111,6 +151,7 @@ GearUpgradeCostTabMixin = {}
 
 local PANEL_EVENTS = {
 	"PLAYER_EQUIPMENT_CHANGED",
+	"BAG_UPDATE_DELAYED",
 }
 
 -- Element heights; must match the template sizes in UI.xml.
@@ -123,7 +164,7 @@ local HEADER_TO_ROWS_EXTRA = 2
 local ROWS_TO_HEADER_SPACER = 4
 
 function GearUpgradeCostTabMixin:OnLoad()
-	self.collapsed = { equipped = false, bags = true }
+	self.collapsed = { equipped = false, freebies = false, bags = true }
 
 	local view = CreateScrollBoxListLinearView()
 
@@ -136,6 +177,8 @@ function GearUpgradeCostTabMixin:OnLoad()
 	view:SetElementFactory(function(factory, elementData)
 		if elementData.isHeader then
 			factory("GearUpgradeCostTabHeaderTemplate", Initializer)
+		elseif elementData.isBagRow then
+			factory("GearUpgradeCostTabBagRowTemplate", Initializer)
 		elseif elementData.isNote then
 			factory("GearUpgradeCostTabNoteTemplate", Initializer)
 		elseif elementData.isSpacer then
@@ -202,13 +245,14 @@ function GearUpgradeCostTabMixin:OnHide()
 end
 
 function GearUpgradeCostTabMixin:OnEvent(event)
-	if event == "PLAYER_EQUIPMENT_CHANGED" then
+	if event == "PLAYER_EQUIPMENT_CHANGED" or event == "BAG_UPDATE_DELAYED" then
 		self:QueueUpdate()
 	end
 end
 
 -- PLAYER_EQUIPMENT_CHANGED fires once per slot, so an equipment-set swap
--- delivers ~16 events in one frame; coalesce them into a single Update.
+-- delivers ~16 events in one frame (often alongside BAG_UPDATE_DELAYED);
+-- coalesce them into a single Update.
 function GearUpgradeCostTabMixin:QueueUpdate()
 	if self.updateQueued then
 		return
@@ -222,7 +266,7 @@ function GearUpgradeCostTabMixin:QueueUpdate()
 	end)
 end
 
--- Waits for all equipped items' data to be cached, then rebuilds the list.
+-- Waits for all equipped and bag items' data to be cached, then rebuilds.
 function GearUpgradeCostTabMixin:Update()
 	if self.continuableContainer then
 		self.continuableContainer:Cancel()
@@ -234,6 +278,7 @@ function GearUpgradeCostTabMixin:Update()
 			self.continuableContainer:AddContinuable(Item:CreateFromEquipmentSlot(slotEntry.inv))
 		end
 	end
+	ns.AddBagContinuables(self.continuableContainer)
 	self.continuableContainer:ContinueOnLoad(function()
 		self:Rebuild()
 	end)
@@ -258,9 +303,40 @@ function GearUpgradeCostTabMixin:Rebuild()
 		end
 		elements[#elements + 1] = { isSpacer = true, height = ROWS_TO_HEADER_SPACER }
 	end
-	elements[#elements + 1] = { isHeader = true, key = "bags", title = L.IN_BAG }
-	if not self.collapsed.bags then
-		elements[#elements + 1] = { isNote = true, text = L.IN_BAG_PLACEHOLDER }
+	local freebiesExpanded = not self.collapsed.freebies
+	local bagsExpanded = not self.collapsed.bags
+	local freeRows, crestRows
+	if freebiesExpanded or bagsExpanded then
+		freeRows, crestRows = ns.BuildBagRows(mode)
+	end
+
+	elements[#elements + 1] = {
+		isHeader = true, key = "freebies", title = L.FREE_UPGRADES,
+		extraBottom = freebiesExpanded and HEADER_TO_ROWS_EXTRA or nil,
+	}
+	if freebiesExpanded then
+		if #freeRows == 0 then
+			elements[#elements + 1] = { isNote = true, text = L.FREE_UPGRADES_EMPTY }
+		else
+			for _, row in ipairs(freeRows) do
+				elements[#elements + 1] = row
+			end
+		end
+		elements[#elements + 1] = { isSpacer = true, height = ROWS_TO_HEADER_SPACER }
+	end
+
+	elements[#elements + 1] = {
+		isHeader = true, key = "bags", title = L.IN_BAG,
+		extraBottom = bagsExpanded and HEADER_TO_ROWS_EXTRA or nil,
+	}
+	if bagsExpanded then
+		if #crestRows == 0 then
+			elements[#elements + 1] = { isNote = true, text = L.IN_BAG_EMPTY }
+		else
+			for _, row in ipairs(crestRows) do
+				elements[#elements + 1] = row
+			end
+		end
 	end
 
 	self.ScrollBox:SetDataProvider(CreateDataProvider(elements), ScrollBoxConstants.RetainScrollPosition)

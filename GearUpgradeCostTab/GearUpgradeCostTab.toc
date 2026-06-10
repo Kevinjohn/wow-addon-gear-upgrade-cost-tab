@@ -2,7 +2,7 @@
 ## Title: Gear Upgrade Cost Tab
 ## Notes: Adds a "Gear Upgrades" tab to the character frame showing item level, upgrade track, and crest costs for equipped gear.
 ## Author: Kevinjohn Gallagher
-## Version: 0.1.0
+## Version: 0.2.0
 ## IconTexture: Interface\Icons\INV_Misc_ArmorKit_17
 ## SavedVariables: GearUpgradeCostTabDB
 
