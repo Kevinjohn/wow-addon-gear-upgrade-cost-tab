@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.6.0-alpha] — 2026-06-11
+
+### Added
+- **Include Warbound items** checkbox (off by default), joining the other
+  bag-list filters in the dropdown. "Warbound until equipped" gear was
+  previously always excluded from the In Bag sections; it can now be
+  listed on demand. It stays hidden by default because upgrading a
+  Warbound item causes it to become soulbound — the same warning the
+  upgrade vendor shows (`CONFIRM_UPGRADE_ITEM_BIND`). Each locale's label
+  and tooltip use the client's own Warbound/Soulbound vocabulary
+  (`ITEM_ACCOUNTBOUND` / `ITEM_SOULBOUND`, verified against live
+  GlobalStrings for all ten languages). The label deliberately does NOT
+  reuse the quality checkboxes' "Include %s items" frame: several locales
+  render that frame as "items of quality %s", which is wrong for a bind
+  type.
+
+### Changed
+- Warbound rows hidden by the new filter now count toward the "hidden by
+  your filters" empty note, like every other filter; previously the
+  warbound exclusion was invisible, so an empty section could claim there
+  was nothing to upgrade while warbound upgradeables sat in the bags.
+
 ## [0.5.0-alpha] — 2026-06-10
 
 ### Added

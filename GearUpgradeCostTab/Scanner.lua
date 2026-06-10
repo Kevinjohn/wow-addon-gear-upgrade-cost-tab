@@ -196,11 +196,13 @@ local function ItemNameFromLink(itemLink)
 	return color and (color .. name .. "|r") or name
 end
 
--- "Warbound until equipped" items are excluded from all lists (user choice;
--- may become a toggle later). Both globals verified against live enUS
--- GlobalStrings 2026-06: ITEM_ACCOUNTBOUND_UNTIL_EQUIP is the line shown
--- while the item sits warbound in a bag, ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP
--- the "will bind this way" variant.
+-- "Warbound until equipped" items are hidden from the bag lists unless the
+-- "Include Warbound items" checkbox opts in: upgrading one soulbinds it
+-- (the vendor's CONFIRM_UPGRADE_ITEM_BIND dialog says so). Both globals
+-- verified against live enUS GlobalStrings 2026-06:
+-- ITEM_ACCOUNTBOUND_UNTIL_EQUIP is the line shown while the item sits
+-- warbound in a bag, ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP the "will bind this
+-- way" variant.
 local function IsWarboundUntilEquipped(tooltipData)
 	if not (tooltipData and tooltipData.lines) then
 		return false
@@ -251,9 +253,6 @@ local function ScanBagSlot(bag, slot, mode, options, tierSlots)
 	if not track then
 		return nil -- not on an upgrade track
 	end
-	if IsWarboundUntilEquipped(tooltipData) then
-		return nil
-	end
 
 	local itemLevel = C_Item.GetDetailedItemLevelInfo(itemLink)
 	itemLevel = itemLevel and math.floor(itemLevel + 0.5) or nil
@@ -278,6 +277,13 @@ local function ScanBagSlot(bag, slot, mode, options, tierSlots)
 	local quality = containerInfo and containerInfo.quality
 	if (quality == Enum.ItemQuality.Uncommon and not options.includeUncommon)
 		or (quality == Enum.ItemQuality.Rare and not options.includeRare) then
+		return nil, route
+	end
+
+	-- Warbound filter: "Warbound until equipped" gear stays shareable
+	-- across the warband only until someone upgrades it, so it is hidden
+	-- unless opted in via the dropdown checkbox.
+	if not options.includeWarbound and IsWarboundUntilEquipped(tooltipData) then
 		return nil, route
 	end
 
@@ -338,9 +344,9 @@ end
 -- return counts the upgradeable rows the user's filters hid from each
 -- section ({ free = n, crest = n }), so an empty section can say why.
 -- options carries the saved bag filters (includeUncommon, includeRare,
--- prioritiseTier); the UI passes its SavedVariables table directly. Nil
--- keys mean a caller without saved settings, so they get the documented
--- defaults: nil includeUncommon/includeRare already read as "hide", and
+-- includeWarbound, prioritiseTier); the UI passes its SavedVariables table
+-- directly. Nil keys mean a caller without saved settings, so they get the
+-- documented defaults: nil include* keys already read as "hide", and
 -- nil prioritiseTier is explicitly defaulted ON below — otherwise such a
 -- caller would get a quality-filtered-but-tier-unfiltered mix that
 -- matches neither the defaults nor unfiltered output.

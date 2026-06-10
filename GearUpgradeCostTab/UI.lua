@@ -284,6 +284,16 @@ function GearUpgradeCostTabMixin:OnShow()
 		uncommon:SetSelectionIgnored()
 		local rare = rootDescription:CreateCheckbox(IncludeQualityText(Enum.ItemQuality.Rare), IsOptionEnabled, ToggleOption, "includeRare")
 		rare:SetSelectionIgnored()
+		-- "Include Warbound items" carries its own locale string rather
+		-- than reusing INCLUDE_QUALITY_FMT: several locales' frames say
+		-- "items of quality %s", which reads as nonsense around a bind
+		-- type. Each translation embeds the locale's own Warbound term
+		-- (ITEM_ACCOUNTBOUND, verified live GlobalStrings 2026-06-11).
+		local warbound = rootDescription:CreateCheckbox(L.INCLUDE_WARBOUND, IsOptionEnabled, ToggleOption, "includeWarbound")
+		warbound:SetSelectionIgnored()
+		warbound:SetTooltip(function(tooltip)
+			GameTooltip_AddHighlightLine(tooltip, L.INCLUDE_WARBOUND_TIP)
+		end)
 		local tier = rootDescription:CreateCheckbox(L.PRIORITISE_TIER, IsOptionEnabled, ToggleOption, "prioritiseTier")
 		tier:SetSelectionIgnored()
 		tier:SetTooltip(function(tooltip)
@@ -492,6 +502,9 @@ bootstrap:SetScript("OnEvent", function()
 	end
 	if GearUpgradeCostTabDB.includeRare == nil then
 		GearUpgradeCostTabDB.includeRare = false
+	end
+	if GearUpgradeCostTabDB.includeWarbound == nil then
+		GearUpgradeCostTabDB.includeWarbound = false
 	end
 	if GearUpgradeCostTabDB.prioritiseTier == nil then
 		GearUpgradeCostTabDB.prioritiseTier = true

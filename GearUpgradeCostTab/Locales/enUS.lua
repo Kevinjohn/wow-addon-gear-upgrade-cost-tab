@@ -30,6 +30,14 @@ ns.L = setmetatable({
 	INCLUDE_QUALITY_FMT = "Include %s items",
 	PRIORITISE_TIER = "Prioritise tier",
 	PRIORITISE_TIER_TIP = "Hides bag items for slots where you have a class set (tier) piece equipped, since replacing those would break your set bonus.",
+	-- Not built from INCLUDE_QUALITY_FMT: several locales' frames read
+	-- "items of quality %s", which is wrong for a bind type. Each locale
+	-- translates the whole label using its client's Warbound/Soulbound
+	-- terms (ITEM_ACCOUNTBOUND / ITEM_SOULBOUND, verified live
+	-- GlobalStrings 2026-06-11); the tooltip rationale mirrors the
+	-- vendor's own CONFIRM_UPGRADE_ITEM_BIND warning.
+	INCLUDE_WARBOUND = "Include Warbound items",
+	INCLUDE_WARBOUND_TIP = "Warbound items are hidden by default because upgrading one causes it to become soulbound.",
 	COL_SLOT = "Slot",
 	COL_ILVL = ITEM_LEVEL_ABBR or "iLvl",
 	COL_UPGRADE = "Upgrade",
