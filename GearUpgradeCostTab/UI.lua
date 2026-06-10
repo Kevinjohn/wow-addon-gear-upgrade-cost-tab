@@ -33,7 +33,12 @@ end
 function GearUpgradeCostTabHeaderMixin:ToggleCollapsed()
 	local collapsed = GearUpgradeCostTabFrame.collapsed
 	collapsed[self.elementData.key] = not collapsed[self.elementData.key]
-	GearUpgradeCostTabFrame:Rebuild()
+	-- Update, not Rebuild: expanding a section starts scanning items the
+	-- collapsed rebuilds skipped, so this path needs the same item-data
+	-- preload as every other one. When everything is already cached (the
+	-- usual case) ContinueOnLoad fires synchronously, so the click still
+	-- feels instant.
+	GearUpgradeCostTabFrame:Update()
 end
 
 ------------------------------------------------------------------------------
@@ -233,6 +238,29 @@ local function SetCostModeSelected(mode)
 	GearUpgradeCostTabFrame:Update()
 end
 
+local function IsOptionEnabled(key)
+	return GearUpgradeCostTabDB[key] == true
+end
+
+-- Checkbox setters toggle their own state; the menu system only reports
+-- the click (same contract as Blizzard's Reputation filter menu).
+local function ToggleOption(key)
+	GearUpgradeCostTabDB[key] = not GearUpgradeCostTabDB[key]
+	GearUpgradeCostTabFrame:Update()
+end
+
+-- "Include Uncommon items": the quality name comes from Blizzard's
+-- ITEM_QUALITYn_DESC globals (localized for free, always matching the
+-- client's own naming), wrapped in the quality's color.
+local function IncludeQualityText(quality)
+	local name = _G[("ITEM_QUALITY%d_DESC"):format(quality)] or tostring(quality)
+	local colorData = ColorManager.GetColorDataForItemQuality(quality)
+	if colorData and colorData.color then
+		name = colorData.color:WrapTextInColorCode(name)
+	end
+	return L.INCLUDE_QUALITY_FMT:format(name)
+end
+
 function GearUpgradeCostTabMixin:OnShow()
 	FrameUtil.RegisterFrameForEvents(self, PANEL_EVENTS)
 
@@ -244,6 +272,22 @@ function GearUpgradeCostTabMixin:OnShow()
 		local discount = rootDescription:CreateRadio(L.COST_MODE_DISCOUNT, IsCostModeSelected, SetCostModeSelected, "discount")
 		discount:SetTooltip(function(tooltip)
 			GameTooltip_AddHighlightLine(tooltip, L.COST_MODE_DISCOUNT_TIP)
+		end)
+
+		-- Bag-section filters, mirroring the Reputation tab's
+		-- radios-divider-checkboxes dropdown. Checkboxes keep the menu open
+		-- (CreateCheckbox sets MenuResponse.Refresh, verified live
+		-- 2026-06-10), and SetSelectionIgnored keeps their state out of the
+		-- dropdown's collapsed label, which should only name the cost mode.
+		rootDescription:CreateDivider()
+		local uncommon = rootDescription:CreateCheckbox(IncludeQualityText(Enum.ItemQuality.Uncommon), IsOptionEnabled, ToggleOption, "includeUncommon")
+		uncommon:SetSelectionIgnored()
+		local rare = rootDescription:CreateCheckbox(IncludeQualityText(Enum.ItemQuality.Rare), IsOptionEnabled, ToggleOption, "includeRare")
+		rare:SetSelectionIgnored()
+		local tier = rootDescription:CreateCheckbox(L.PRIORITISE_TIER, IsOptionEnabled, ToggleOption, "prioritiseTier")
+		tier:SetSelectionIgnored()
+		tier:SetTooltip(function(tooltip)
+			GameTooltip_AddHighlightLine(tooltip, L.PRIORITISE_TIER_TIP)
 		end)
 	end)
 end
@@ -313,9 +357,9 @@ function GearUpgradeCostTabMixin:Rebuild()
 	end
 	local freebiesExpanded = not self.collapsed.freebies
 	local bagsExpanded = not self.collapsed.bags
-	local freeRows, crestRows
+	local freeRows, crestRows, hiddenRows
 	if freebiesExpanded or bagsExpanded then
-		freeRows, crestRows = ns.BuildBagRows(mode)
+		freeRows, crestRows, hiddenRows = ns.BuildBagRows(mode, GearUpgradeCostTabDB)
 	end
 
 	elements[#elements + 1] = {
@@ -324,7 +368,10 @@ function GearUpgradeCostTabMixin:Rebuild()
 	}
 	if freebiesExpanded then
 		if #freeRows == 0 then
-			elements[#elements + 1] = { isNote = true, text = L.FREE_UPGRADES_EMPTY }
+			-- "Nothing to upgrade" would be false when the filters (not the
+			-- bags) are why the section is empty, so say which it is.
+			elements[#elements + 1] = { isNote = true,
+				text = hiddenRows.free > 0 and L.FILTERED_EMPTY or L.FREE_UPGRADES_EMPTY }
 		else
 			for _, row in ipairs(freeRows) do
 				elements[#elements + 1] = row
@@ -339,7 +386,8 @@ function GearUpgradeCostTabMixin:Rebuild()
 	}
 	if bagsExpanded then
 		if #crestRows == 0 then
-			elements[#elements + 1] = { isNote = true, text = L.IN_BAG_EMPTY }
+			elements[#elements + 1] = { isNote = true,
+				text = hiddenRows.crest > 0 and L.FILTERED_EMPTY or L.IN_BAG_EMPTY }
 		else
 			for _, row in ipairs(crestRows) do
 				elements[#elements + 1] = row
@@ -435,6 +483,18 @@ bootstrap:SetScript("OnEvent", function()
 	GearUpgradeCostTabDB = GearUpgradeCostTabDB or {}
 	if GearUpgradeCostTabDB.costMode == nil then
 		GearUpgradeCostTabDB.costMode = "base"
+	end
+	-- Bag filters: uncommon and rare hidden, tier slots protected. The
+	-- false defaults are written out explicitly so every option is visible
+	-- in the SavedVariables file.
+	if GearUpgradeCostTabDB.includeUncommon == nil then
+		GearUpgradeCostTabDB.includeUncommon = false
+	end
+	if GearUpgradeCostTabDB.includeRare == nil then
+		GearUpgradeCostTabDB.includeRare = false
+	end
+	if GearUpgradeCostTabDB.prioritiseTier == nil then
+		GearUpgradeCostTabDB.prioritiseTier = true
 	end
 	SetupCharacterFrameTab()
 end)

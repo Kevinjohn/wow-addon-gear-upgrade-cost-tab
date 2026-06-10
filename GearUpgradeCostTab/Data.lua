@@ -168,6 +168,32 @@ function ns.GetSlotMaxItemLevel(itemLink, equipLoc)
 	return best > 0 and best or nil
 end
 
+-- True when the item belongs to an item set (setID, GetItemInfo return
+-- 16) — runtime-verified 2026-06-10: the equipped tier helm 250024
+-- returns setID 1980 from its item link. This is the set-membership half
+-- of "is this a tier piece"; the caller adds "is on an upgrade track"
+-- (Scanner's GetEquippedTierSlots), and together they implement the
+-- contract: an equipped set piece the player is actively upgrading
+-- protects its slot. Class-lock legs were tried and DROPPED after
+-- in-game testing: C_Item.IsItemSpecificToPlayerClass — Blizzard's own
+-- Great Vault class-set check — returned FALSE in game for that same
+-- helm passed as an item link despite the item being class-locked in the
+-- 12.0.5.67823 db2 (AllowableClass=1024), and a tooltip "Classes: ..."
+-- line match would swap one unverified dependency for another. An
+-- expansionID == LE_EXPANSION_LEVEL_CURRENT leg was also rejected: that
+-- constant tracks the CLIENT, not the gear (flips at prepatch, rejects
+-- previous-season tier, deprecated family). Without a class leg,
+-- non-class sets on a crest track could qualify (PvP appearance sets,
+-- world-drop bonus sets); suppressing those slots still matches the
+-- filter's intent of protecting equipped sets, and the checkbox turns it
+-- off. Crafted sets never qualify (recrafting, not crest tracks), nor do
+-- the four "set look" off-slots (no setID). Missing data (uncached item)
+-- counts as not a set: wrongly hiding upgrade rows is worse than showing
+-- extra ones.
+function ns.IsSetItem(itemLink)
+	return (select(16, C_Item.GetItemInfo(itemLink))) ~= nil
+end
+
 -- Returns { maxed = true } when fully upgraded, nil for unknown tracks, or
 -- { nextCost, totalCost, nextIsFree } in crests of the track's Dawncrest.
 -- maxRank parsed from the tooltip takes priority over the static table, so a

@@ -15,12 +15,21 @@ ns.L = setmetatable({
 	IN_BAG_EMPTY = "Nothing in your bags needs crests to upgrade right now.",
 	FREE_UPGRADES = "In Bag (next upgrade free)",
 	FREE_UPGRADES_EMPTY = "Nothing in your bags can be upgraded for gold alone right now.",
+	-- Shown instead of the empty notes when upgradeable items exist but
+	-- the dropdown filters hid every one of them.
+	FILTERED_EMPTY = "Upgradeable items here are hidden by your filters.",
 	COST_MODE_BASE = "Base costs",
 	COST_MODE_DISCOUNT = "Discount aware",
 	COST_MODE_DISCOUNT_TIP = "Halves crest costs for tracks with the warband \"... of the Dawn\" achievement, and marks upgrades below your slot high-watermark as free (gold only).",
 	-- The cost-mode dropdown's pixel width; locales with longer option
 	-- labels (ruRU) override it so the selected text doesn't ellipsize.
 	COST_MODE_WIDTH = 130,
+	-- %s receives Blizzard's localized quality name (ITEM_QUALITY2_DESC
+	-- etc.) already wrapped in its quality color, so locales translate only
+	-- the sentence frame.
+	INCLUDE_QUALITY_FMT = "Include %s items",
+	PRIORITISE_TIER = "Prioritise tier",
+	PRIORITISE_TIER_TIP = "Hides bag items for slots where you have a class set (tier) piece equipped, since replacing those would break your set bonus.",
 	COL_SLOT = "Slot",
 	COL_ILVL = ITEM_LEVEL_ABBR or "iLvl",
 	COL_UPGRADE = "Upgrade",

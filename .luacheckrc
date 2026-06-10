@@ -61,6 +61,10 @@ read_globals = {
 	"GetAchievementInfo",
 	"GetLocale",
 
+	-- Enums and color helpers
+	"Enum",
+	"ColorManager",
+
 	-- Global strings and constants
 	"EQUIPPED", "ITEM_LEVEL_ABBR",
 	"ITEM_UPGRADE_TOOLTIP_FORMAT_STRING",

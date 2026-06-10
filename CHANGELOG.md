@@ -1,5 +1,55 @@
 # Changelog
 
+## [0.5.0-alpha] — 2026-06-10
+
+### Added
+- Three bag-list filter checkboxes in the cost-mode dropdown, below a
+  divider — the same radios-divider-checkboxes layout the Reputation tab's
+  filter uses. All three persist in `GearUpgradeCostTabDB`:
+  - **Include Uncommon items** and **Include Rare items** (both off by
+    default): green and blue gear is now hidden from both In Bag sections
+    unless opted in. The labels reuse Blizzard's localized
+    `ITEM_QUALITY2/3_DESC` quality names, wrapped in their quality colors
+    via `ColorManager`, so only the sentence frame needed translating.
+  - **Prioritise tier** (on by default): hides bag items for any slot
+    whose equipped item is a set ("tier") piece the player is actively
+    upgrading, so the lists never suggest competing with a set bonus.
+    There is no direct "is tier" API; detection is two in-game-verified
+    legs: the equipped item belongs to an item set (`C_Item.GetItemInfo`
+    return 16, `setID`) AND is itself on an upgrade track (the same
+    tooltip parse the rest of the addon runs on). Truly-legacy tier has
+    no current crest track and crafted "sets" recraft instead of using
+    crests, so neither suppresses anything; the four "set look"
+    off-slots carry no `setID`. Two stronger class-lock legs were
+    rejected by in-game testing (2026-06-10):
+    `C_Item.IsItemSpecificToPlayerClass` — Blizzard's own Great Vault
+    class-set check — returned false for an equipped Druid tier helm
+    passed as an item link (item 250024, db2-verified class-locked with
+    `AllowableClass=1024`), and `expansionID ==
+    LE_EXPANSION_LEVEL_CURRENT` compares gear against a constant that
+    tracks the client, not the item (flips at prepatch, rejects
+    previous-season tier, deprecated family). Without a class leg,
+    non-class sets on a crest track (e.g. PvP appearance sets) also
+    protect their slots — consistent with the filter's intent. The
+    heuristic lives in `Data.lua` (`ns.IsSetItem`) alongside the other
+    verify-in-game facts; confirmed working in game 2026-06-10. Full
+    post-mortem of the rejected approaches: `docs/tier-detection.md`.
+- Filter-aware empty notes: when a bag section is empty only because the
+  filters hid every upgradeable row, it now says so ("Upgradeable items
+  here are hidden by your filters") instead of falsely claiming there is
+  nothing to upgrade. The scanner runs the user filters last and reports
+  what they hid per section.
+
+### Fixed
+- Expanding a collapsed section now goes through the same item-data
+  preload as every other rebuild path; previously the header click
+  rebuilt immediately and could scan not-yet-cached items, making the new
+  filters silently fail open until the next update.
+- `ns.BuildBagRows` called without saved settings now applies the
+  documented defaults (tier filter on); previously a nil options table
+  produced a quality-filtered-but-tier-unfiltered mix matching neither
+  the defaults nor unfiltered output.
+
 ## [0.4.0-alpha] — 2026-06-10
 
 ### Added

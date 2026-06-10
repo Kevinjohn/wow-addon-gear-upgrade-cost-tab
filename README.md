@@ -27,7 +27,26 @@ A dropdown at the top (like the Reputation tab's filter) switches between:
 - **Base costs** (default) — the standard per-rank crest cost.
 - **Discount aware** — halves costs for tracks where your warband has earned the "… of the Dawn" achievement, and marks upgrades below your slot high-watermark as **Free** (gold only).
 
-The choice is saved between sessions (`GearUpgradeCostTabDB`).
+Below a divider, the same dropdown carries three bag-list filters:
+
+- **Include Uncommon items** (off by default) — show green gear in the two
+  In Bag sections.
+- **Include Rare items** (off by default) — show blue gear in the two In
+  Bag sections.
+- **Prioritise tier** (on by default) — hide bag items for any slot whose
+  equipped item is a set ("tier") piece you are actively upgrading, so
+  the lists never suggest competing with a set bonus. There is no direct
+  "is tier" API; detection is two in-game-verified legs: the equipped
+  item belongs to an item set (`GetItemInfo`'s `setID`) and is itself on
+  an upgrade track — so truly-legacy tier (no current crest track) and
+  crafted gear (recrafts, no crest track) don't suppress anything. The
+  approaches that didn't survive testing (including two of Blizzard's
+  own APIs) are written up in
+  [docs/tier-detection.md](docs/tier-detection.md).
+
+All choices are saved between sessions (`GearUpgradeCostTabDB`). When a bag
+section is empty only because the filters hid every upgradeable row, its
+empty note says so instead of claiming there is nothing to upgrade.
 
 ## Installation
 
@@ -52,6 +71,7 @@ The Midnight upgrade-cost numbers in `GearUpgradeCostTab/Data.lua` come from thi
 - ✅ **Discount achievement IDs** — all five verified against the 12.0.5.67823 Achievement db2 (2026-06-10): Adventurer 61809, Veteran 42767, Champion 42768, Hero 42769, Myth 42770, each still guarded by a (localized) name check. The *halved-cost mechanic itself* remains guide-sourced and should be sanity-checked at the vendor once an achievement is earned.
 - ✅ **Localized track/achievement names** — verified against the 12.0.5.67823 db2 dumps per locale (see `Locales/*.lua` comments); not yet sighted on live non-English clients in game.
 - ⚠️ **High-watermark API** — `C_ItemUpgrade.GetHighWatermarkForItem` takes an item link and returns character/account watermarks (signature wiki-verified for 12.0.1), but the values' in-game semantics are unverified, so it is probed defensively. The Free Upgrades section also falls back to comparing against the item level you have equipped in the slot, which can only under-report, never falsely mark an upgrade free.
+- ✅ **Tier detection** — confirmed working in game 2026-06-10 (equipped tier helm correctly suppresses its slot's bag rows). The shipped heuristic is `setID` (`GetItemInfo` return 16) + "equipped piece is on an upgrade track"; two stronger legs were rejected by in-game testing the same day — `C_Item.IsItemSpecificToPlayerClass` (Blizzard's own Great Vault check) returns **false** for a db2-verified class-locked helm passed as an item link, and `expansionID == LE_EXPANSION_LEVEL_CURRENT` compares gear against a client-version constant. Known precision trade-off: non-class sets on a crest track (PvP appearance sets) also protect their slots. Full post-mortem: [docs/tier-detection.md](docs/tier-detection.md).
 - **`## Interface:` number** — bump `GearUpgradeCostTab.toc` when patches flag the addon as out of date.
 
 ## Files
@@ -64,6 +84,7 @@ The Midnight upgrade-cost numbers in `GearUpgradeCostTab/Data.lua` come from thi
 | `Scanner.lua` | Reads equipped and bag items and parses upgrade track/rank from tooltip data |
 | `UI.xml` | Row/header templates and the panel (mirrors Blizzard's `Blizzard_TokenUI`) |
 | `UI.lua` | Mixins, character-frame tab integration, dropdown, scroll list |
+| `docs/tier-detection.md` | Dev notes: how tier detection works and the approaches that failed |
 
 ## Localization
 

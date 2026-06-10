@@ -214,7 +214,27 @@ local function IsWarboundUntilEquipped(tooltipData)
 	return false
 end
 
-local function ScanBagSlot(bag, slot, mode)
+-- Inventory slots whose equipped item is a set ("tier") piece worth
+-- protecting: it belongs to an item set (ns.IsSetItem in Data.lua, with
+-- the history of stronger legs that failed in-game testing) AND is
+-- itself on an upgrade track — that is what scopes the filter to gear
+-- the player is actually progressing (current or previous season) while
+-- truly-legacy tier, which no current crest can upgrade, suppresses
+-- nothing. GetItemInfo is safe inside the heuristic: every rebuild path
+-- preloads equipped items via ContinuableContainer first.
+function ns.GetEquippedTierSlots()
+	local tierSlots = {}
+	for _, slotEntry in ipairs(ns.SLOTS) do
+		local itemLink = GetInventoryItemLink("player", slotEntry.inv)
+		if itemLink and ns.IsSetItem(itemLink)
+			and ParseUpgradeFromTooltip(C_TooltipInfo.GetInventoryItem("player", slotEntry.inv)) then
+			tierSlots[slotEntry.inv] = true
+		end
+	end
+	return tierSlots
+end
+
+local function ScanBagSlot(bag, slot, mode, options, tierSlots)
 	local itemLink = C_Container.GetContainerItemLink(bag, slot)
 	if not itemLink then
 		return nil
@@ -222,7 +242,8 @@ local function ScanBagSlot(bag, slot, mode)
 	-- Cheap filter first: only equippable items in slots we track can
 	-- qualify, and GetItemInfoInstant needs no server round-trip.
 	local equipLoc = select(4, C_Item.GetItemInfoInstant(itemLink))
-	if not (equipLoc and ns.EQUIP_LOC_SLOTS[equipLoc]) then
+	local invSlots = equipLoc and ns.EQUIP_LOC_SLOTS[equipLoc]
+	if not invSlots then
 		return nil
 	end
 	local tooltipData = C_TooltipInfo.GetBagItem(bag, slot)
@@ -240,6 +261,42 @@ local function ScanBagSlot(bag, slot, mode)
 	local costs = ns.GetBagUpgradeCosts(ns.GetTrackInfo(track), rank, maxRank, mode, itemLevel, watermark)
 	if not costs then
 		return nil
+	end
+
+	-- The user-facing filters run LAST, on items that would otherwise be
+	-- listed, so the second return value identifies exactly the rows the
+	-- filters hid (and the section each would have landed in). That lets
+	-- the UI say "hidden by your filters" instead of a false "nothing to
+	-- upgrade" when a section comes back empty.
+	local route = costs.nextIsFree and "free" or "crest"
+
+	-- Quality filter: uncommon and rare gear is hidden unless opted in via
+	-- the dropdown checkboxes. Epic and above always shows, and nothing
+	-- below uncommon carries an upgrade track. GetContainerItemInfo is
+	-- local data, no server round-trip.
+	local containerInfo = C_Container.GetContainerItemInfo(bag, slot)
+	local quality = containerInfo and containerInfo.quality
+	if (quality == Enum.ItemQuality.Uncommon and not options.includeUncommon)
+		or (quality == Enum.ItemQuality.Rare and not options.includeRare) then
+		return nil, route
+	end
+
+	-- "Prioritise tier": slots holding an equipped class-set piece keep
+	-- their set bonus, so bag candidates for them are noise. Multi-slot
+	-- locations (rings, trinkets, weapons) would only hide when EVERY slot
+	-- they could occupy holds a set piece — in practice never, since class
+	-- sets occupy single-slot locations.
+	if tierSlots then
+		local allTier = true
+		for _, invSlot in ipairs(invSlots) do
+			if not tierSlots[invSlot] then
+				allTier = false
+				break
+			end
+		end
+		if allTier then
+			return nil, route
+		end
 	end
 
 	return {
@@ -277,21 +334,40 @@ end
 
 -- Scans carried bags once and splits upgradeable items into two EXCLUSIVE
 -- lists, routed by what the next rank costs: freeRows (gold-only) or
--- crestRows (crests; unknown tracks land here with "?" costs).
-function ns.BuildBagRows(mode)
+-- crestRows (crests; unknown tracks land here with "?" costs). The third
+-- return counts the upgradeable rows the user's filters hid from each
+-- section ({ free = n, crest = n }), so an empty section can say why.
+-- options carries the saved bag filters (includeUncommon, includeRare,
+-- prioritiseTier); the UI passes its SavedVariables table directly. Nil
+-- keys mean a caller without saved settings, so they get the documented
+-- defaults: nil includeUncommon/includeRare already read as "hide", and
+-- nil prioritiseTier is explicitly defaulted ON below — otherwise such a
+-- caller would get a quality-filtered-but-tier-unfiltered mix that
+-- matches neither the defaults nor unfiltered output.
+function ns.BuildBagRows(mode, options)
+	options = options or {}
+	local prioritiseTier = options.prioritiseTier
+	if prioritiseTier == nil then
+		prioritiseTier = true
+	end
+	-- Resolved once per scan, not per item: it walks every equipped slot.
+	local tierSlots = prioritiseTier and ns.GetEquippedTierSlots() or nil
 	local freeRows, crestRows = {}, {}
+	local hidden = { free = 0, crest = 0 }
 	for bag = FIRST_BAG, LAST_BAG do
 		for slot = 1, C_Container.GetContainerNumSlots(bag) do
-			local row = ScanBagSlot(bag, slot, mode)
+			local row, hiddenRoute = ScanBagSlot(bag, slot, mode, options, tierSlots)
 			if row then
 				local rows = row.nextIsFree and freeRows or crestRows
 				rows[#rows + 1] = row
+			elseif hiddenRoute then
+				hidden[hiddenRoute] = hidden[hiddenRoute] + 1
 			end
 		end
 	end
 	SortBagRows(freeRows)
 	SortBagRows(crestRows)
-	return freeRows, crestRows
+	return freeRows, crestRows, hidden
 end
 
 -- Registers every bag item with the loader so item data is cached before
