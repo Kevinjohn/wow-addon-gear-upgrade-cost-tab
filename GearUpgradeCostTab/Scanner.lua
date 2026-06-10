@@ -32,6 +32,32 @@ local function BuildUpgradePattern()
 	return "^%s*" .. format .. "%s*$"
 end
 
+-- Strips any "Label:" prefix at the last colon; returns the remaining name
+-- only when it maps to a known track.
+local function KnownTrackFromCapture(capture)
+	local candidate = strtrim(capture:match("[^:]*$"))
+	if candidate ~= "" and ns.GetTrackInfo(candidate) then
+		return candidate
+	end
+	return nil
+end
+
+-- True when the string's final character is a 3-or-4-byte UTF-8 sequence
+-- (lead byte >= 0xE0) — the CJK range. Latin is 1-2 bytes and Cyrillic 2,
+-- so both stay excluded.
+local function EndsInCJK(text)
+	for index = #text, 1, -1 do
+		local byte = text:byte(index)
+		if byte < 128 then
+			return false -- ASCII tail
+		elseif byte >= 192 then
+			return byte >= 224 -- found the final character's lead byte
+		end
+		-- 128-191 is a UTF-8 continuation byte; keep walking back
+	end
+	return false
+end
+
 local function ParseUpgradeLine(text)
 	if upgradePattern == nil then
 		upgradePattern = BuildUpgradePattern()
@@ -63,16 +89,26 @@ local function ParseUpgradeLine(text)
 	-- O(n^2) scan for identical results (the lazy capture already absorbs
 	-- any prefix). No-break spaces (some locales use U+00A0/U+202F around
 	-- the colon) are folded to plain spaces first, since neither %s nor
-	-- strtrim treats them as whitespace.
+	-- strtrim treats them as whitespace, and the fullwidth colon U+FF1A
+	-- (zhCN/zhTW prefixes: "升级：") to ":" so the prefix strip sees it.
 	if not text:find("/", 1, true) then
 		return nil
 	end
-	local normalized = text:gsub("\194\160", " "):gsub("\226\128\175", " ")
+	local normalized = text:gsub("\194\160", " "):gsub("\226\128\175", " "):gsub("\239\188\154", ":")
 	local track, current, max = normalized:match("^(.-)%s+(%d+)/(%d+)%s*$")
-	if track and track ~= "" then
-		track = strtrim(track:match("[^:]*$"))
-		if ns.GetTrackInfo(track) then
-			return track, tonumber(current), tonumber(max)
+	local known = track and KnownTrackFromCapture(track)
+	if known then
+		return known, tonumber(current), tonumber(max)
+	end
+	-- CJK tooltips can fuse the name straight to the rank (zhTW's legacy
+	-- lines read "等級提升：精兵1/8"). Allowed only when the name ends in
+	-- a CJK character, so Latin or Cyrillic text fused to digits
+	-- ("Veteran2/6") still can't false-match.
+	track, current, max = normalized:match("^(.-)(%d+)/(%d+)%s*$")
+	if track then
+		local candidate = KnownTrackFromCapture(track)
+		if candidate and EndsInCJK(candidate) then
+			return candidate, tonumber(current), tonumber(max)
 		end
 	end
 	return nil

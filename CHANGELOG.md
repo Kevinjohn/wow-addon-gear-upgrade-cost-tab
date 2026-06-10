@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0-alpha] — 2026-06-10
+
+### Added
+- Korean (koKR), Simplified Chinese (zhCN), and Traditional Chinese (zhTW)
+  localization — the addon now covers every language the WoW client ships.
+  Track and achievement names verified against the 12.0.5.67823 client db2.
+  Blizzard's achievement naming is again non-parallel (koKR Champion is
+  "여명의 용사" against the track's "챔피언"; zhTW Myth is "黎明傳奇"
+  against the track's "神話"), and zhTW's legacy tooltip lines use "傳奇"
+  for the Myth track where the live client says "神話" — all mapped.
+
+### Fixed
+- The fallback tooltip parser now folds the fullwidth colon U+FF1A used by
+  the Chinese clients' line prefixes ("升级：") and accepts zhTW's legacy
+  fused name+rank shape ("等級提升：精兵1/8"). The fused form is only
+  trusted when the name ends in a CJK character, so Latin or Cyrillic text
+  glued to digits ("Veteran2/6") still can't false-match.
+
 ## [0.3.0-alpha] — 2026-06-10
 
 ### Added

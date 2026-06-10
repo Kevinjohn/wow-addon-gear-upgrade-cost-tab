@@ -30,4 +30,12 @@ return {
 	-- ptPT clients share the ptBR file and data.
 	{ locale = "ptPT", file = "ptBR", formatString = PT_FORMAT },
 	{ locale = "ruRU", file = "ruRU", formatString = "Уровень улучшения: %s %d/%d" },
+	-- koKR legacy baked lines use the "강화 단계:" prefix instead of this
+	-- live global; the harness's prefix fallback cases cover them.
+	{ locale = "koKR", file = "koKR", formatString = "레벨 강화: %s %d/%d" },
+	-- The Chinese format strings use the fullwidth colon U+FF1A
+	-- (\239\188\154); zhTW legacy baked lines additionally fuse the name
+	-- to the rank, covered by the harness's fused-line cases.
+	{ locale = "zhCN", file = "zhCN", formatString = "升级\239\188\154%s %d/%d" },
+	{ locale = "zhTW", file = "zhTW", formatString = "提升等級\239\188\154%s %d/%d" },
 }

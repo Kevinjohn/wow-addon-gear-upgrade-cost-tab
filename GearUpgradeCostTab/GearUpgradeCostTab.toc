@@ -9,8 +9,11 @@
 ## Notes-ptBR: Adiciona uma aba "Aprimoramentos" à janela do personagem com nível de item, nível de aprimoramento e custos em brasões do equipamento.
 ## Notes-ptPT: Adiciona uma aba "Aprimoramentos" à janela do personagem com nível de item, nível de aprimoramento e custos em brasões do equipamento.
 ## Notes-ruRU: Добавляет в окно персонажа вкладку "Улучшения" с уровнем предметов, уровнем улучшения и стоимостью в гербах для надетой экипировки.
+## Notes-koKR: 캐릭터 창에 장착 장비의 아이템 레벨, 강화 단계, 문장 비용을 보여주는 "장비 강화" 탭을 추가합니다.
+## Notes-zhCN: 在角色界面添加“装备升级”标签页，显示已装备物品的物品等级、升级路线与纹章消耗。
+## Notes-zhTW: 在角色視窗新增「裝備升級」分頁，顯示已裝備物品的物品等級、升級進度與紋章花費。
 ## Author: Kevinjohn Gallagher
-## Version: 0.3.0
+## Version: 0.4.0
 ## IconTexture: Interface\Icons\INV_Misc_ArmorKit_17
 ## SavedVariables: GearUpgradeCostTabDB
 
@@ -21,6 +24,9 @@ Locales\esES.lua
 Locales\itIT.lua
 Locales\ptBR.lua
 Locales\ruRU.lua
+Locales\koKR.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
 
 Data.lua
 Scanner.lua

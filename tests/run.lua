@@ -163,6 +163,23 @@ local function firstEquippedRow(ns)
 	return rows and rows[1] or nil
 end
 
+local FULLWIDTH_COLON = "\239\188\154" -- "：", used by zhCN/zhTW prefixes
+
+-- Mirrors Scanner.lua's EndsInCJK: true when the final character is a
+-- 3-or-4-byte UTF-8 sequence (lead byte >= 0xE0). CJK tooltips may fuse
+-- the track name to the rank; Latin/Cyrillic ones never do.
+local function endsInCJK(text)
+	for index = #text, 1, -1 do
+		local byte = text:byte(index)
+		if byte < 128 then
+			return false
+		elseif byte >= 192 then
+			return byte >= 224
+		end
+	end
+	return false
+end
+
 local function buildLine(formatString, track, current, max)
 	return (formatString:gsub("%%s", track):gsub("%%d", tostring(current), 1):gsub("%%d", tostring(max), 1))
 end
@@ -235,17 +252,31 @@ local function testLocale(entry)
 				"Prefix Label: " .. localized .. " 2/6",
 				"Pr\195\169fixe\194\160:\194\160" .. localized .. " 2/6",
 				localized .. "\194\160" .. "2/6",
+				"Prefix" .. FULLWIDTH_COLON .. " " .. localized .. " 2/6",
 			}) do
 				mockState.tooltipLines = { { leftText = line } }
 				local row = firstEquippedRow(nsFallback)
 				check(row and row.track == localized and row.rank == 2 and row.maxRank == 6,
 					tag .. ": fallback parse of '" .. line .. "'")
 			end
-			-- A name fused to the rank with NO separator is not an upgrade
-			-- line and must not parse.
-			mockState.tooltipLines = { { leftText = localized .. "2/6" } }
-			local fused = firstEquippedRow(nsFallback)
-			check(fused and fused.track == nil, tag .. ": no-separator line rejected '" .. localized .. "2/6'")
+			-- A name fused to the rank with no separator: real for CJK
+			-- locales (zhTW's legacy lines read "等級提升：精兵1/8"), so it
+			-- must parse there — and ONLY there, so Latin/Cyrillic text
+			-- fused to digits still can't false-match.
+			for _, fusedLine in ipairs({
+				localized .. "2/6",
+				"Prefix" .. FULLWIDTH_COLON .. localized .. "2/6",
+			}) do
+				mockState.tooltipLines = { { leftText = fusedLine } }
+				local fused = firstEquippedRow(nsFallback)
+				if endsInCJK(localized) then
+					check(fused and fused.track == localized and fused.rank == 2 and fused.maxRank == 6,
+						tag .. ": fused CJK line parsed '" .. fusedLine .. "'")
+				else
+					check(fused and fused.track == nil,
+						tag .. ": no-separator line rejected '" .. fusedLine .. "'")
+				end
+			end
 		end
 	end
 

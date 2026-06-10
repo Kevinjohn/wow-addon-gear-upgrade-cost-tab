@@ -67,11 +67,12 @@ The Midnight upgrade-cost numbers in `GearUpgradeCostTab/Data.lua` come from thi
 
 ## Localization
 
-All European WoW languages are supported: English (enUS/enGB), German
-(deDE), French (frFR), Spanish (esES/esMX), Italian (itIT), Portuguese
-(ptBR/ptPT), and Russian (ruRU). Each `Locales/<locale>.lua` overrides the
-enUS table, so a missing translation falls back to English instead of
-breaking.
+Every language the WoW client ships is supported: English (enUS/enGB),
+German (deDE), French (frFR), Spanish (esES/esMX), Italian (itIT),
+Portuguese (ptBR/ptPT), Russian (ruRU), Korean (koKR), Simplified Chinese
+(zhCN), and Traditional Chinese (zhTW). Each `Locales/<locale>.lua`
+overrides the enUS table, so a missing translation falls back to English
+instead of breaking.
 
 Three things make a locale work beyond plain UI strings:
 
@@ -99,7 +100,8 @@ Three things make a locale work beyond plain UI strings:
 `tests/run.lua` is a locale regression harness: it loads the addon's Lua
 files with a mocked WoW environment and verifies tooltip parsing (both the
 format-string path — proven in isolation with an unknown track name — and
-the fallback path, including no-break-space prefixes), track-name
+the fallback path, including no-break-space prefixes, fullwidth colons,
+and the fused name+rank shape zhTW's legacy lines use), track-name
 resolution for every alias a locale ships (derived from the loaded locale
 files, so the tests can't drift from the data), and cost math. Run it from
 the repo root with any Lua ≥ 5.1: `lua tests/run.lua`.
