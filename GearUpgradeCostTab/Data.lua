@@ -84,6 +84,10 @@ ns.TRACKS = {
 	Myth       = { maxRank = 6, crestCurrencyID = 3347, costPerRank = 20, achievementID = 42770, achievementName = "Myth of the Dawn" },
 }
 
+-- ns.TRACKS in ladder order, least rare first (ascending item-level bands).
+-- The crest footer renders these left to right.
+ns.CREST_ORDER = { "Adventurer", "Veteran", "Champion", "Hero", "Myth" }
+
 -- Approximate item levels gained per upgrade rank, used only to compare the
 -- next rank against the slot high-watermark in discount-aware mode.
 -- VERIFY IN-GAME: tracks span ~13 item levels over 5 steps in Midnight.

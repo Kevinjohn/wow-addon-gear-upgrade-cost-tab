@@ -38,6 +38,8 @@ ns.L = setmetatable({
 	-- vendor's own CONFIRM_UPGRADE_ITEM_BIND warning.
 	INCLUDE_WARBOUND = "Include Warbound items",
 	INCLUDE_WARBOUND_TIP = "Warbound items are hidden by default because upgrading one causes it to become soulbound.",
+	-- Toggles the crest-totals footer below the lists.
+	SHOW_CRESTS = "Show my crests",
 	COL_SLOT = "Slot",
 	COL_ILVL = ITEM_LEVEL_ABBR or "iLvl",
 	COL_UPGRADE = "Upgrade",

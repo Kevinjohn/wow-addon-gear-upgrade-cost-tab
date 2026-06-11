@@ -29,13 +29,19 @@ Three lists, each with a header you can click to collapse or expand:
 Hover over any bag item to see its tooltip. The lists update on their own
 when your bags change.
 
+A bar below the lists can show how many of each crest you own, from the
+most common on the left (Adventurer) to the rarest on the right (Myth). It
+updates as you earn or spend crests, and hovering a crest shows its
+tooltip. It is off by default — turn it on with **Show my crests** in the
+dropdown.
+
 Items that are "Warbound until equipped" are hidden from the bag lists
 unless you opt in (see **Include Warbound items** below), because
 upgrading one binds it to a single character.
 
 ## Options
 
-The dropdown at the top of the tab has two parts.
+The dropdown at the top of the tab has three parts.
 
 **How costs are shown:**
 
@@ -58,6 +64,12 @@ The dropdown at the top of the tab has two parts.
 - **Prioritise tier** (on by default) — when you are wearing a tier-set
   piece in a slot, bag items for that slot are hidden, so the lists never
   tempt you to break your set bonus.
+
+**Display:**
+
+- **Show my crests** (off by default) — adds a bar at the bottom of the
+  tab showing how many of each crest you own; the lists shrink a little
+  to make room.
 
 Your choices are remembered between play sessions. If a bag section looks
 empty only because the filters are hiding things, it will say so.

@@ -138,10 +138,15 @@
 	<!-- The 4th character frame subframe; layout mirrors Blizzard's TokenFrame -->
 	<Frame name="GearUpgradeCostTabFrame" parent="CharacterFrame" setAllPoints="true" useParentLevel="true" enableMouse="true" mixin="GearUpgradeCostTabMixin" hidden="true" id="4">
 		<Frames>
+			<!-- Bottom offset leaves room for the crest footer below: 4px
+			     inset margin + 22px footer + 2px gap. The ScrollBar shortens
+			     with it (anchored to the ScrollBox). When "Show my crests"
+			     is off, ApplyCrestFooterVisibility (UI.lua) re-anchors this
+			     edge to reclaim the strip, so keep its offsets in sync. -->
 			<Frame parentKey="ScrollBox" inherits="WowScrollBoxList" frameStrata="HIGH">
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeKey="$parent.$parent.Inset" x="4" y="-28"/>
-					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent.Inset" x="-22" y="2"/>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent.Inset" x="-22" y="28"/>
 				</Anchors>
 			</Frame>
 
@@ -151,6 +156,21 @@
 					<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="BOTTOMRIGHT" x="5" y="4"/>
 				</Anchors>
 			</EventFrame>
+
+			<!-- Always-visible crest totals pinned below the list, spanning
+			     the full inset width. One cell per crest, least rare on the
+			     left, rarest on the right; cells are created and laid out in
+			     UI.lua. Same HIGH strata as the ScrollBox: the panel itself
+			     uses the CharacterFrame's level, which renders under the
+			     Inset's backdrop, so anything inside the inset rect needs
+			     the raised strata. -->
+			<Frame parentKey="CrestFooter" frameStrata="HIGH">
+				<Size y="22"/>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeKey="$parent.$parent.Inset" x="4" y="4"/>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent.Inset" x="-4" y="4"/>
+				</Anchors>
+			</Frame>
 
 			<DropdownButton parentKey="CostModeDropdown" inherits="WowStyle1DropdownTemplate">
 				<Anchors>

@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.7.0-alpha] — 2026-06-11
+
+### Added
+- Crest footer pinned below the scrolling list (the list and its scroll
+  bar are 26px shorter while it is shown): one cell per crest in
+  ladder order, least rare on the left (Adventurer) to rarest on the right
+  (Myth), each showing the warband's owned total next to the crest's icon.
+  Totals come from `C_CurrencyInfo.GetCurrencyInfo` and refresh live on
+  `CURRENCY_DISPLAY_UPDATE`; rendering reuses the cost columns' formatter
+  (`GetCurrencyString`), so a still-unverified crest currency ID degrades
+  to a muted dash rather than a phantom zero. Hovering a cell shows the
+  currency tooltip (`GameTooltip:SetCurrencyByID`, the auto-generated
+  counterpart of `C_TooltipInfo.GetCurrencyByID` — usage confirmed against
+  Blizzard's own PVPHonorSystem/PVPMatchResults code, live branch
+  2026-06-11). The icon and number need no translation, and the dash
+  reuses `L.DASH`.
+- **Show my crests** checkbox (off by default) in the dropdown, below a
+  second divider separating display options from the bag filters. Ticking
+  it shows the crest footer and re-anchors the list's bottom edge (the
+  scroll bar follows) to make room, refreshing the totals on every show,
+  which covers currency changes that arrived while hidden (the
+  `CURRENCY_DISPLAY_UPDATE` handler skips a hidden footer). Toggling
+  re-anchors rather than rebuilding — the option changes panel chrome, not
+  list contents. Label translated for all ten locales using each client's
+  established crest term (`SHOW_CRESTS`); persists as `showCrests` in
+  `GearUpgradeCostTabDB`.
+
 ## [0.6.0-alpha] — 2026-06-11
 
 ### Added

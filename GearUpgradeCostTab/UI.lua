@@ -163,6 +163,7 @@ GearUpgradeCostTabMixin = {}
 local PANEL_EVENTS = {
 	"PLAYER_EQUIPMENT_CHANGED",
 	"BAG_UPDATE_DELAYED",
+	"CURRENCY_DISPLAY_UPDATE",
 }
 
 -- Element heights; must match the template sizes in UI.xml.
@@ -227,6 +228,92 @@ function GearUpgradeCostTabMixin:OnLoad()
 	self.ColUpgrade:SetText(L.COL_UPGRADE)
 	self.ColNextCost:SetText(L.COL_NEXT)
 	self.ColTotalCost:SetText(L.COL_MAX)
+
+	self:InitializeCrestFooter()
+end
+
+------------------------------------------------------------------------------
+-- Crest footer (always-visible crest totals under the list)
+------------------------------------------------------------------------------
+
+local function CrestCellOnEnter(cell)
+	if not cell.valid then
+		return
+	end
+	GameTooltip:SetOwner(cell, "ANCHOR_RIGHT")
+	GameTooltip:SetCurrencyByID(cell.currencyID)
+	GameTooltip:Show()
+end
+
+local function CrestCellOnLeave()
+	GameTooltip:Hide()
+end
+
+-- One cell per crest, ns.CREST_ORDER left to right. Creation only wires
+-- content and tooltips; positions come from LayoutCrestFooter, which needs
+-- the footer's anchor-driven width and so can't run until layout resolves.
+function GearUpgradeCostTabMixin:InitializeCrestFooter()
+	local footer = self.CrestFooter
+	footer.cells = {}
+	for index, trackKey in ipairs(ns.CREST_ORDER) do
+		local cell = CreateFrame("Frame", nil, footer)
+		cell.currencyID = ns.TRACKS[trackKey].crestCurrencyID
+		cell:EnableMouse(true)
+		cell:SetScript("OnEnter", CrestCellOnEnter)
+		cell:SetScript("OnLeave", CrestCellOnLeave)
+		cell.Text = cell:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+		cell.Text:SetPoint("CENTER")
+		footer.cells[index] = cell
+	end
+	footer:SetScript("OnSizeChanged", function()
+		self:LayoutCrestFooter()
+	end)
+end
+
+-- Equal fifths of the footer's current width. Also called from OnShow:
+-- the footer's size can resolve during XML load, before OnLoad installs
+-- the OnSizeChanged script, in which case the script alone never fires.
+function GearUpgradeCostTabMixin:LayoutCrestFooter()
+	local footer = self.CrestFooter
+	local cellWidth = footer:GetWidth() / #footer.cells
+	for index, cell in ipairs(footer.cells) do
+		cell:SetSize(cellWidth, footer:GetHeight())
+		cell:SetPoint("LEFT", (index - 1) * cellWidth, 0)
+	end
+end
+
+-- Owned totals straight from the currency API, rendered with the same
+-- Blizzard formatter the cost columns use (GetCurrencyString), so the
+-- footer's icons match the rows'. An unverified currency ID (the formatter
+-- returns "") shows a muted dash instead of a phantom zero, and the cell's
+-- tooltip is disabled along with it.
+function GearUpgradeCostTabMixin:UpdateCrestFooter()
+	for _, cell in ipairs(self.CrestFooter.cells) do
+		local info = C_CurrencyInfo.GetCurrencyInfo(cell.currencyID)
+		local text = info and GetCurrencyString(cell.currencyID, info.quantity) or ""
+		cell.valid = text ~= ""
+		cell.Text:SetText(cell.valid and text or GRAY_FONT_COLOR:WrapTextInColorCode(L.DASH))
+	end
+end
+
+-- The ScrollBox's bottom offsets relative to the Inset, mirroring UI.xml:
+-- with the footer, 4px inset margin + 22px footer + 2px gap; without it,
+-- the footer's whole strip returns to the list.
+local SCROLLBOX_BOTTOM_WITH_FOOTER, SCROLLBOX_BOTTOM_NO_FOOTER = 28, 2
+
+-- Applies the "Show my crests" option: shows/hides the footer and moves
+-- the ScrollBox's bottom edge (the ScrollBar follows it). Re-showing also
+-- refreshes layout and totals, which covers currency changes that arrived
+-- while the footer was hidden and its event handler skipped them.
+function GearUpgradeCostTabMixin:ApplyCrestFooterVisibility()
+	local show = GearUpgradeCostTabDB.showCrests == true
+	self.CrestFooter:SetShown(show)
+	self.ScrollBox:SetPoint("BOTTOMRIGHT", self:GetParent().Inset, "BOTTOMRIGHT",
+		-22, show and SCROLLBOX_BOTTOM_WITH_FOOTER or SCROLLBOX_BOTTOM_NO_FOOTER)
+	if show then
+		self:LayoutCrestFooter()
+		self:UpdateCrestFooter()
+	end
 end
 
 local function IsCostModeSelected(mode)
@@ -249,6 +336,13 @@ local function ToggleOption(key)
 	GearUpgradeCostTabFrame:Update()
 end
 
+-- Unlike the bag filters, "Show my crests" changes the panel chrome, not
+-- the list contents, so it re-anchors instead of rebuilding.
+local function ToggleShowCrests(key)
+	GearUpgradeCostTabDB[key] = not GearUpgradeCostTabDB[key]
+	GearUpgradeCostTabFrame:ApplyCrestFooterVisibility()
+end
+
 -- "Include Uncommon items": the quality name comes from Blizzard's
 -- ITEM_QUALITYn_DESC globals (localized for free, always matching the
 -- client's own naming), wrapped in the quality's color.
@@ -265,6 +359,7 @@ function GearUpgradeCostTabMixin:OnShow()
 	FrameUtil.RegisterFrameForEvents(self, PANEL_EVENTS)
 
 	self:Update()
+	self:ApplyCrestFooterVisibility()
 
 	self.CostModeDropdown:SetupMenu(function(_dropdown, rootDescription)
 		rootDescription:SetTag("MENU_GEAR_UPGRADE_COST_TAB_MODE")
@@ -299,6 +394,11 @@ function GearUpgradeCostTabMixin:OnShow()
 		tier:SetTooltip(function(tooltip)
 			GameTooltip_AddHighlightLine(tooltip, L.PRIORITISE_TIER_TIP)
 		end)
+
+		-- Display options, separated from the bag filters above.
+		rootDescription:CreateDivider()
+		local crests = rootDescription:CreateCheckbox(L.SHOW_CRESTS, IsOptionEnabled, ToggleShowCrests, "showCrests")
+		crests:SetSelectionIgnored()
 	end)
 end
 
@@ -307,7 +407,14 @@ function GearUpgradeCostTabMixin:OnHide()
 end
 
 function GearUpgradeCostTabMixin:OnEvent(event)
-	if event == "PLAYER_EQUIPMENT_CHANGED" or event == "BAG_UPDATE_DELAYED" then
+	if event == "CURRENCY_DISPLAY_UPDATE" then
+		-- Crest totals only; the lists don't price off owned currency. A
+		-- hidden footer skips the refresh — ApplyCrestFooterVisibility
+		-- re-reads the totals whenever it is shown again.
+		if self.CrestFooter:IsShown() then
+			self:UpdateCrestFooter()
+		end
+	elseif event == "PLAYER_EQUIPMENT_CHANGED" or event == "BAG_UPDATE_DELAYED" then
 		self:QueueUpdate()
 	end
 end
@@ -508,6 +615,9 @@ bootstrap:SetScript("OnEvent", function()
 	end
 	if GearUpgradeCostTabDB.prioritiseTier == nil then
 		GearUpgradeCostTabDB.prioritiseTier = true
+	end
+	if GearUpgradeCostTabDB.showCrests == nil then
+		GearUpgradeCostTabDB.showCrests = false
 	end
 	SetupCharacterFrameTab()
 end)

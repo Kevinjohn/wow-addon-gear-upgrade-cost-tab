@@ -13,7 +13,7 @@
 ## Notes-zhCN: 在角色界面添加“装备升级”标签页，显示已装备物品的物品等级、升级路线与纹章消耗。
 ## Notes-zhTW: 在角色視窗新增「裝備升級」分頁，顯示已裝備物品的物品等級、升級進度與紋章花費。
 ## Author: Kevinjohn Gallagher
-## Version: 0.6.0
+## Version: 0.7.0
 ## IconTexture: Interface\Icons\INV_Misc_ArmorKit_17
 ## SavedVariables: GearUpgradeCostTabDB
 
