@@ -1,5 +1,12 @@
 # Gear Upgrade Cost Tab
 
+[![Release](https://img.shields.io/github/v/release/Kevinjohn/wow-addon-gear-upgrade-cost-tab?include_prereleases&sort=semver)](https://github.com/Kevinjohn/wow-addon-gear-upgrade-cost-tab/releases)
+[![License: MIT](https://img.shields.io/github/license/Kevinjohn/wow-addon-gear-upgrade-cost-tab)](LICENSE)
+![Interface](https://img.shields.io/badge/Interface-120005-blue)
+![Last commit](https://img.shields.io/github/last-commit/Kevinjohn/wow-addon-gear-upgrade-cost-tab)
+
+<!-- Keep the Interface badge above in step with `## Interface` in the .toc. -->
+
 A World of Warcraft (retail) addon that shows what your gear upgrades will
 cost — and which ones are free — without travelling to the upgrade vendor.
 
@@ -38,6 +45,12 @@ dropdown.
 Items that are "Warbound until equipped" are hidden from the bag lists
 unless you opt in (see **Include Warbound items** below), because
 upgrading one binds it to a single character.
+
+## Screenshots
+
+<!-- Drop your in-game captures into docs/img/ and they'll appear here. -->
+
+![The Gear Upgrades tab in the character window](docs/img/tab.png)
 
 ## Options
 
@@ -88,6 +101,14 @@ possible, but if a cost, a discount, or a missing item looks off, please
 — a screenshot of the row and the item's tooltip helps a lot.
 
 ---
+
+**Installing a release:** download the latest `GearUpgradeCostTab` zip from the
+[Releases page](https://github.com/Kevinjohn/wow-addon-gear-upgrade-cost-tab/releases),
+unzip it into your `World of Warcraft/_retail_/Interface/AddOns/` folder, and
+`/reload` (or restart the game).
+
+**Contributing:** bug reports, translations, and pull requests are all welcome —
+see [CONTRIBUTING.md](CONTRIBUTING.md). Released under the [MIT License](LICENSE).
 
 Developers: see [README-dev.md](README-dev.md) for how the addon works,
 data verification status, localization details, and tests.

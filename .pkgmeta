@@ -1,0 +1,20 @@
+package-as: GearUpgradeCostTab
+
+enable-nolib-creation: no
+
+# Repo-only files that should never ship inside the addon zip.
+ignore:
+  - .github
+  - .gitignore
+  - .gitattributes
+  - .luacheckrc
+  - .pkgmeta
+  - scripts
+  - tests
+  - docs
+  - README.md
+  - README-dev.md
+  - CONTRIBUTING.md
+  - SECURITY.md
+  - CODE_OF_CONDUCT.md
+  - CHANGELOG.md
