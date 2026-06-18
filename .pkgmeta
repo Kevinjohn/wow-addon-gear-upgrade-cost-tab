@@ -17,4 +17,13 @@ ignore:
   - CONTRIBUTING.md
   - SECURITY.md
   - CODE_OF_CONDUCT.md
-  - CHANGELOG.md
+  # CHANGELOG.md is intentionally not ignored: manual-changelog (below) ships
+  # this curated file as the changelog instead of a git-log dump.
+
+move-folders:
+  GearUpgradeCostTab/GearUpgradeCostTab: GearUpgradeCostTab
+
+# Ship our curated changelog instead of the packager's git-log dump.
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown

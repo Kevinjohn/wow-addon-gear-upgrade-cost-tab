@@ -1,39 +1,31 @@
 #!/usr/bin/env sh
-# Build an installable addon zip into .release/.
+# Build a release zip with the BigWigs packager.
 #
-# Why not the BigWigs packager? It expects the .toc at the repository root (a
-# "flat" addon repo). This repo keeps the addon in the GearUpgradeCostTab/
-# subfolder (so the repo can carry README/tests/docs/scripts alongside it), so
-# we build the zip directly instead: archive the tracked addon files, substitute
-# the @project-version@ keyword the way the packager would, and zip it.
+# This repo keeps the addon in the GearUpgradeCostTab/ subfolder; the packager
+# is taught to find it by the `move-folders` directive in .pkgmeta, so it works
+# without flattening the repo.
 #
-# Usage:
-#   sh scripts/release.sh            # version from `git describe` (latest tag, +commits if ahead)
-#   sh scripts/release.sh 0.8.0      # explicit version
+# By default this runs "dist only" (-d): it builds the zip into .release/ and
+# uploads nothing — the right mode until CurseForge / Wago projects exist.
 #
-# For a clean release number, tag first:  git tag v0.8.0 && sh scripts/release.sh
+# To publish later:
+#   1. Create the CurseForge / Wago projects and fill X-Curse-Project-ID /
+#      X-Wago-ID in GearUpgradeCostTab/GearUpgradeCostTab.toc.
+#   2. Export the tokens:
+#         export CF_API_KEY=...        # CurseForge
+#         export WAGO_API_TOKEN=...    # Wago
+#         export GITHUB_OAUTH=...      # GitHub personal access token (for the Release)
+#   3. Run with your own flags to upload, e.g.  sh scripts/release.sh -p 0000 -a abcd
 #
-# Publishing to CurseForge / Wago later: either upload the built zip through
-# their web UI, or adopt the BigWigs packager (which needs a flat repo layout —
-# see docs/release-checklist.md).
+# The packager reads the version from the latest git tag, so tag first:
+#   git tag v0.8.0 && git push --tags
 set -e
+
 cd "$(dirname "$0")/.."
 
-ADDON=GearUpgradeCostTab
-VER=${1:-$(git describe --tags --always 2>/dev/null | sed 's/^v//')}
-[ -n "$VER" ] || { echo "error: could not determine a version (no tags, no commits?)" >&2; exit 1; }
+# Default to a no-upload build unless the caller passes their own flags.
+if [ "$#" -eq 0 ]; then
+	set -- -d
+fi
 
-OUT=.release
-rm -rf "$OUT"
-mkdir -p "$OUT"
-
-# Tracked files only (no .DS_Store, no stray exec bits), taken from the last commit.
-git archive --format=tar --prefix="$ADDON/" "HEAD:$ADDON" | ( cd "$OUT" && tar -xf - )
-
-# Substitute the version keyword in the packaged TOC (portable in-place edit).
-toc="$OUT/$ADDON/$ADDON.toc"
-tmp=$(mktemp)
-sed "s/@project-version@/$VER/g" "$toc" > "$tmp" && mv "$tmp" "$toc"
-
-( cd "$OUT" && zip -r -X -q "$ADDON-$VER.zip" "$ADDON" )
-echo "built $OUT/$ADDON-$VER.zip"
+curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh | bash -s -- "$@"

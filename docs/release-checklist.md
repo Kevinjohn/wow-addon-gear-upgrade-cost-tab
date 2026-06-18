@@ -5,14 +5,26 @@ release. This repo was set up with it; copy it into your other addon repos and
 work top to bottom. It assumes a lean, GitHub-only setup (no CI workflows;
 release zips built locally with the BigWigs packager).
 
+> **Layout (do this first — it bites late otherwise).** Put the addon's loaded
+> files (`.toc`, `.lua`, any `Locales/`, `LICENSE`) at the **repository root**,
+> *not* in an `ADDON/` subfolder. The BigWigs packager only discovers a `.toc`
+> at the repo root (`$topdir/<package-as>.toc`); `package-as` renames the folder
+> *inside the zip*, it can't point the packager at a subfolder. A nested
+> `ADDON/ADDON.toc` fails with "Could not find an addon TOC file." `.pkgmeta`'s
+> `ignore:` list (step 4) keeps the repo-only files out of the zip, so the root
+> stays clean. Converting an existing subfolder repo: see the migration steps at
+> the end of this file.
+
 Placeholders used below — set these first:
 - `OWNER`  = GitHub user/org      (e.g. `Kevinjohn`)
 - `REPO`   = GitHub repo slug     (e.g. `wow-addon-foo`)
-- `ADDON`  = in-game folder name  (e.g. `FooAddon`)  ← must match the folder & .toc
+- `ADDON`  = in-game / zip folder name (e.g. `FooAddon`)  ← must match `package-as`
+            and the `.toc` base name (`ADDON.toc` at the repo root)
 
 ## 0. Sanity
 - [ ] Confirm the real remote: `git remote -v`  (badges/links die on a wrong slug)
-- [ ] Confirm the addon folder name == `ADDON` (this is what `.pkgmeta` packages-as)
+- [ ] Confirm `ADDON.toc` is at the **repo root** (not `ADDON/ADDON.toc`) and its
+      base name == `ADDON` == `.pkgmeta`'s `package-as` (see the Layout note above)
 
 ## 1. LICENSE
 - [ ] Add a LICENSE (MIT is the usual pick). GitHub → Add file → "Choose a license
@@ -60,7 +72,15 @@ ignore:
   - CONTRIBUTING.md
   - SECURITY.md
   - CODE_OF_CONDUCT.md
-  - CHANGELOG.md
+# Nested layout only (addon in an ADDON/ subfolder): teach the packager where the
+# .toc is. Omit this whole block for a flat repo (.toc already at the root).
+move-folders:
+  ADDON/ADDON: ADDON
+# Optional: ship your curated CHANGELOG.md instead of a git-log dump. If you use
+# this, do NOT also list CHANGELOG.md under `ignore` or nothing gets shipped.
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
 ```
 
 ## 5. Local scripts  (no CI)
@@ -77,9 +97,7 @@ done
 [ -n "$LUA" ] || { echo "no Lua interpreter found" >&2; exit 1; }
 echo "==> tests ($LUA)"; "$LUA" tests/run.lua   # adjust if your test entrypoint differs
 ```
-- [ ] `scripts/release.sh` (chmod +x) — builds the zip into `.release/`. Pick by layout:
-
-  **Flat repo** (`.toc` at the repo root): use the BigWigs packager.
+- [ ] `scripts/release.sh` (chmod +x) — BigWigs packager, no-upload by default:
 ```sh
 #!/usr/bin/env sh
 set -e
@@ -87,26 +105,9 @@ cd "$(dirname "$0")/.."
 [ "$#" -eq 0 ] && set -- -d   # -d = build zip into .release/, upload nothing
 curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh | bash -s -- "$@"
 ```
-  (To publish later: fill the X-* .toc IDs, export `CF_API_KEY` / `WAGO_API_TOKEN` /
-  `GITHUB_OAUTH`, run without `-d`.)
-
-  **Nested repo** (addon in an `ADDON/` subfolder — the packager can't find the
-  .toc and `-t` needs the .git there too): build directly instead.
-```sh
-#!/usr/bin/env sh
-set -e
-cd "$(dirname "$0")/.."
-ADDON=ADDON
-VER=${1:-$(git describe --tags --always 2>/dev/null | sed 's/^v//')}
-rm -rf .release && mkdir -p .release
-git archive --format=tar --prefix="$ADDON/" "HEAD:$ADDON" | ( cd .release && tar -xf - )
-toc=".release/$ADDON/$ADDON.toc"; tmp=$(mktemp)
-sed "s/@project-version@/$VER/g" "$toc" > "$tmp" && mv "$tmp" "$toc"
-( cd .release && zip -r -X -q "$ADDON-$VER.zip" "$ADDON" )
-echo "built .release/$ADDON-$VER.zip"
-```
-  (For CurseForge/Wago later: upload this zip via their web UI, or flatten the
-  repo to adopt the packager.)
+  Works for both flat and nested repos — nested just needs the `move-folders`
+  directive in §4. To publish later: fill the X-* .toc IDs, export `CF_API_KEY` /
+  `WAGO_API_TOKEN` / `GITHUB_OAUTH`, and run with your own flags (no `-d`).
 
 ## 6. Community-health docs
 - [ ] `CONTRIBUTING.md` — bug reports (addon ver, `GetBuildInfo()`, error text via
@@ -143,11 +144,11 @@ Be respectful, welcoming, constructive. Report concerns privately to <email>.
       then verify `git diff --summary | grep "mode change"` is empty. Keep `scripts/` at 755.
       (Recurs? treat it as an env quirk; don't use `core.fileMode false` or your
       `scripts/` lose their `+x` in the index.)
-- [ ] **Packager wants a flat repo:** the BigWigs packager only looks for the
-      `.toc` at the repository root, and `-t <dir>` needs the `.git` in that dir
-      too. If your addon lives in a subfolder, either flatten the repo or build
-      the zip directly (the nested `release.sh` above). `.pkgmeta` is only read by
-      the packager — it's inert with the direct build, kept for a future flatten.
+- [ ] **Nested layout + packager:** the packager only finds the `.toc` at the repo
+      root by default (and `-t <dir>` needs the `.git` there too, so it won't help).
+      If your addon lives in an `ADDON/` subfolder, add a `move-folders: ADDON/ADDON:
+      ADDON` block to `.pkgmeta` (§4) — that's the whole fix; no flattening. After
+      building, confirm the zip is a single `ADDON/` folder, not double-nested.
 - [ ] **CHANGELOG** — keep one in "Keep a Changelog" format if you don't already.
 
 ## 10. Verify

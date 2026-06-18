@@ -50,10 +50,10 @@ That runs `luacheck` (config in `.luacheckrc`) and the locale regression suite
 
 ## Building a release
 
-Releases are built locally with `scripts/release.sh`, which archives the addon
-folder, stamps the version into the `.toc`, and writes a zip to `.release/`. Tag
-first for a clean version number (`git tag v0.8.0 && sh scripts/release.sh`),
-then attach the zip to a GitHub Release.
+Releases are built locally with `scripts/release.sh`, which runs the BigWigs
+packager (taught to find the addon subfolder via `.pkgmeta`) and writes a zip to
+`.release/`. Tag first for a clean version number (`git tag v0.8.0 && sh
+scripts/release.sh`), then attach the zip to a GitHub Release.
 
 ## License
 
