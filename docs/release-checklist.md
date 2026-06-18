@@ -172,3 +172,26 @@ Be respectful, welcoming, constructive. Report concerns privately to <email>.
 - If a repo already publishes to CurseForge/Wago, *do* add the download badges
   (`https://img.shields.io/...` or `cf.way2muchnoise.eu/<id>.svg`) and a CI badge if it
   has workflows — this checklist assumes the lean GitHub-only setup.
+
+## Migrating a subfolder repo to flat
+
+If an addon currently lives in `repo/ADDON/…` and you want the packager-native
+flat layout (`.toc` at the repo root), from the repo root:
+
+1. Move the addon's files up one level and drop the now-empty folder:
+```sh
+git mv ADDON/* .
+rmdir ADDON 2>/dev/null || true
+```
+   (If `Locales/` or any dotfiles don't move with the glob, repeat
+   `git mv ADDON/<thing> .` for each.)
+2. `.pkgmeta`: keep `package-as: ADDON`, **delete the `move-folders:` block** (no
+   longer needed). The `ignore:` list now keeps the repo-only root files out of the zip.
+3. Fix paths that assumed the subfolder: `scripts/check.sh` (`luacheck ADDON` →
+   `luacheck .`), the test harness's addon dir, `.luacheckrc`, and any README-dev
+   symlink instructions.
+4. The dev symlink now points the **repo root** into AddOns as `ADDON`
+   (`ln -s /path/to/repo ".../AddOns/ADDON"`). Repo-meta files (`.git`, README,
+   scripts) then sit beside the addon in-game, but WoW ignores everything that
+   isn't `.lua`/`.xml`/`.toc`.
+5. Verify: `sh scripts/release.sh` → the zip is a single `ADDON/` folder, version stamped.
