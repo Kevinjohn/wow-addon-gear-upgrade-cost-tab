@@ -60,21 +60,27 @@ empty note says so instead of claiming there is nothing to upgrade.
 
 ## Installation
 
-Copy (or symlink) the `GearUpgradeCostTab` folder into your AddOns directory — on this Mac that is `/Applications/Games/World of Warcraft/_retail_/Interface/AddOns`:
+The addon's files live at the **repository root** (root layout, so the BigWigs
+packager can find the `.toc` — see [docs/packaging.md](docs/packaging.md)). For
+live development, symlink the repo root in as the addon folder; WoW only loads
+what the `.toc` lists, so the repo-only files sitting alongside are ignored.
+On this Mac the AddOns directory is
+`/Applications/Games/World of Warcraft/_retail_/Interface/AddOns`:
 
 ```
 # macOS (run from this repo)
-ln -s "$(pwd)/GearUpgradeCostTab" "/Applications/Games/World of Warcraft/_retail_/Interface/AddOns/GearUpgradeCostTab"
+ln -s "$(pwd)" "/Applications/Games/World of Warcraft/_retail_/Interface/AddOns/GearUpgradeCostTab"
 
 # Windows (run from this repo, adjust drive/path)
-mklink /D "C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\GearUpgradeCostTab" "%cd%\GearUpgradeCostTab"
+mklink /D "C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\GearUpgradeCostTab" "%cd%"
 ```
 
+The symlink's folder name must match the `.toc` base name (`GearUpgradeCostTab`).
 Then `/reload` (or restart the client) and press **C**.
 
 ## ⚠️ Data verification status
 
-The Midnight upgrade-cost numbers in `GearUpgradeCostTab/Data.lua` come from third-party guides (there is no API that exposes upgrade costs while the upgrade vendor is closed, so the addon computes them from a static table). Verified in game 2026-06:
+The Midnight upgrade-cost numbers in `Data.lua` come from third-party guides (there is no API that exposes upgrade costs while the upgrade vendor is closed, so the addon computes them from a static table). Verified in game 2026-06:
 
 - ✅ **Costs and tooltip parsing** — per-rank crest costs and track/rank parsing confirmed correct against live gear.
 - ✅ **Dawncrest currency IDs** — Adventurer **3383**, Veteran 3341, Champion 3343, Hero 3345 confirmed in game (icons render). Myth (3347) confirmed as "Myth Dawncrest" in the 12.0.5.67823 client data (wago.tools CurrencyTypes db2), in-game icon render still untested until Myth-track gear is available.
@@ -144,6 +150,6 @@ the repo root with any Lua ≥ 5.1: `lua tests/run.lua`.
 - The list uses the modern `ScrollBox` API (`CreateScrollBoxListLinearView` + `ScrollUtil.InitScrollBoxListWithScrollBar`) with `ListHeaderThreeSliceTemplate` accordion headers — the same pattern as the Currency tab.
 - Midnight's addon restrictions ("Secret Values") only affect real-time combat data; this out-of-combat UI addon is unaffected.
 
-Lint with [luacheck](https://github.com/lunarmodules/luacheck): `luacheck GearUpgradeCostTab/` (config in `.luacheckrc`). Test with `lua tests/run.lua`.
+Lint with [luacheck](https://github.com/lunarmodules/luacheck): `luacheck *.lua Locales/*.lua` (config in `.luacheckrc`). Test with `lua tests/run.lua`. Or just run `sh scripts/check.sh`, which does both.
 
 Release notes live in [CHANGELOG.md](CHANGELOG.md).

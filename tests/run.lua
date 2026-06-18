@@ -15,7 +15,9 @@
 -- (WoW runs Lua 5.1; the files under test avoid version-specific syntax, so
 -- any Lua >= 5.1 works here.)
 
-local ADDON_DIR = "GearUpgradeCostTab/"
+-- Root layout: the addon's Lua sits at the repo root, so files load with no
+-- addon-subfolder prefix (Locales/enUS.lua, Data.lua, …).
+local ADDON_DIR = ""
 
 local failures, checks = {}, 0
 local function check(ok, label)

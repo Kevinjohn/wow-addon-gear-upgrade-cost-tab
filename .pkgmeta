@@ -4,6 +4,7 @@ enable-nolib-creation: no
 
 # Repo-only files that should never ship inside the addon zip.
 ignore:
+  - .release
   - .github
   - .gitignore
   - .gitattributes
@@ -19,9 +20,6 @@ ignore:
   - CODE_OF_CONDUCT.md
   # CHANGELOG.md is intentionally not ignored: manual-changelog (below) ships
   # this curated file as the changelog instead of a git-log dump.
-
-move-folders:
-  GearUpgradeCostTab/GearUpgradeCostTab: GearUpgradeCostTab
 
 # Ship our curated changelog instead of the packager's git-log dump.
 manual-changelog:

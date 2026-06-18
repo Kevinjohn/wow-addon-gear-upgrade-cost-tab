@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- Moved the addon's loaded files (`GearUpgradeCostTab.toc`, `Data.lua`,
+  `Scanner.lua`, `UI.lua`, `UI.xml`, `Locales/*.lua`) from the
+  `GearUpgradeCostTab/` subfolder to the repository root so the BigWigs packager
+  can discover the `.toc`. The shipped zip is unchanged — `.pkgmeta`'s
+  `package-as`/`ignore` still produce a single `GearUpgradeCostTab/` folder. No
+  in-game behaviour change. See `docs/packaging.md`.
+- Removed the non-working `move-folders` block from `.pkgmeta` (it does not point
+  the packager at a nested `.toc`; root layout is the actual fix).
+
 ## [0.7.0-alpha] — 2026-06-11
 
 ### Added

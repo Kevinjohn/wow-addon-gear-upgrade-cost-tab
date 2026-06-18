@@ -18,8 +18,8 @@ using the **Bug report** form. The most useful reports include:
 
 ## Translations
 
-Locales live in `GearUpgradeCostTab/Locales/`, one file per language. To add or
-fix a translation, edit the relevant `Locales/<locale>.lua` and open a PR.
+Locales live in `Locales/`, one file per language. To add or fix a translation,
+edit the relevant `Locales/<locale>.lua` and open a PR.
 
 `Locales/enUS.lua` is the source of truth for which keys exist — a locale file
 may only **override** keys that enUS already defines. The test suite enforces
@@ -51,8 +51,9 @@ That runs `luacheck` (config in `.luacheckrc`) and the locale regression suite
 ## Building a release
 
 Releases are built locally with `scripts/release.sh`, which runs the BigWigs
-packager (taught to find the addon subfolder via `.pkgmeta`) and writes a zip to
-`.release/`. Tag first for a clean version number (`git tag v0.8.0 && sh
+packager and writes a zip to `.release/`. The addon is at the repo root so the
+packager can find the `.toc` (see [docs/packaging.md](docs/packaging.md)); needs
+`bash` >= 4.3. Tag first for a clean version number (`git tag v0.8.0 && sh
 scripts/release.sh`), then attach the zip to a GitHub Release.
 
 ## License
