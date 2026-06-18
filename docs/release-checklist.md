@@ -77,7 +77,9 @@ done
 [ -n "$LUA" ] || { echo "no Lua interpreter found" >&2; exit 1; }
 echo "==> tests ($LUA)"; "$LUA" tests/run.lua   # adjust if your test entrypoint differs
 ```
-- [ ] `scripts/release.sh` (chmod +x) — local BigWigs packager, no-upload by default:
+- [ ] `scripts/release.sh` (chmod +x) — builds the zip into `.release/`. Pick by layout:
+
+  **Flat repo** (`.toc` at the repo root): use the BigWigs packager.
 ```sh
 #!/usr/bin/env sh
 set -e
@@ -87,6 +89,24 @@ curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
 ```
   (To publish later: fill the X-* .toc IDs, export `CF_API_KEY` / `WAGO_API_TOKEN` /
   `GITHUB_OAUTH`, run without `-d`.)
+
+  **Nested repo** (addon in an `ADDON/` subfolder — the packager can't find the
+  .toc and `-t` needs the .git there too): build directly instead.
+```sh
+#!/usr/bin/env sh
+set -e
+cd "$(dirname "$0")/.."
+ADDON=ADDON
+VER=${1:-$(git describe --tags --always 2>/dev/null | sed 's/^v//')}
+rm -rf .release && mkdir -p .release
+git archive --format=tar --prefix="$ADDON/" "HEAD:$ADDON" | ( cd .release && tar -xf - )
+toc=".release/$ADDON/$ADDON.toc"; tmp=$(mktemp)
+sed "s/@project-version@/$VER/g" "$toc" > "$tmp" && mv "$tmp" "$toc"
+( cd .release && zip -r -X -q "$ADDON-$VER.zip" "$ADDON" )
+echo "built .release/$ADDON-$VER.zip"
+```
+  (For CurseForge/Wago later: upload this zip via their web UI, or flatten the
+  repo to adopt the packager.)
 
 ## 6. Community-health docs
 - [ ] `CONTRIBUTING.md` — bug reports (addon ver, `GetBuildInfo()`, error text via
@@ -123,6 +143,11 @@ Be respectful, welcoming, constructive. Report concerns privately to <email>.
       then verify `git diff --summary | grep "mode change"` is empty. Keep `scripts/` at 755.
       (Recurs? treat it as an env quirk; don't use `core.fileMode false` or your
       `scripts/` lose their `+x` in the index.)
+- [ ] **Packager wants a flat repo:** the BigWigs packager only looks for the
+      `.toc` at the repository root, and `-t <dir>` needs the `.git` in that dir
+      too. If your addon lives in a subfolder, either flatten the repo or build
+      the zip directly (the nested `release.sh` above). `.pkgmeta` is only read by
+      the packager — it's inert with the direct build, kept for a future flatten.
 - [ ] **CHANGELOG** — keep one in "Keep a Changelog" format if you don't already.
 
 ## 10. Verify
