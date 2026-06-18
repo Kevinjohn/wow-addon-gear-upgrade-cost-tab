@@ -1,4 +1,4 @@
-## Interface: 120005
+## Interface: 120007
 ## Title: Gear Upgrade Cost Tab
 ## Notes: Adds a "Gear Upgrades" tab to the character frame showing item level, upgrade track, and crest costs for equipped gear.
 ## Notes-deDE: Fügt dem Charakterfenster einen Reiter "Aufwertungen" hinzu, der Gegenstandsstufe, Aufwertungspfad und Wappenkosten der angelegten Ausrüstung zeigt.

@@ -2,7 +2,7 @@
 
 [![Release](https://img.shields.io/github/v/release/Kevinjohn/wow-addon-gear-upgrade-cost-tab?include_prereleases&sort=semver)](https://github.com/Kevinjohn/wow-addon-gear-upgrade-cost-tab/releases)
 [![License: MIT](https://img.shields.io/github/license/Kevinjohn/wow-addon-gear-upgrade-cost-tab)](LICENSE)
-![Interface](https://img.shields.io/badge/Interface-120005-blue)
+![Interface](https://img.shields.io/badge/Interface-120007-blue)
 ![Last commit](https://img.shields.io/github/last-commit/Kevinjohn/wow-addon-gear-upgrade-cost-tab)
 
 <!-- Keep the Interface badge above in step with `## Interface` in the .toc. -->

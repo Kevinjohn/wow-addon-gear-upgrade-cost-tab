@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Changed
+- Bumped `## Interface:` to `120007` for retail patch 12.0.7 so the addon loads
+  without the "out of date" prompt.
 - Moved the addon's loaded files (`GearUpgradeCostTab.toc`, `Data.lua`,
   `Scanner.lua`, `UI.lua`, `UI.xml`, `Locales/*.lua`) from the
   `GearUpgradeCostTab/` subfolder to the repository root so the BigWigs packager
