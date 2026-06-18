@@ -58,7 +58,12 @@ Placeholders used below — set these first:
 ```yaml
 package-as: ADDON
 enable-nolib-creation: no
+# Ship the curated CHANGELOG.md instead of the packager's git-log dump (see note).
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
 ignore:
+  - .release
   - .github
   - .gitignore
   - .gitattributes
@@ -72,16 +77,19 @@ ignore:
   - CONTRIBUTING.md
   - SECURITY.md
   - CODE_OF_CONDUCT.md
-# Nested layout only (addon in an ADDON/ subfolder): teach the packager where the
-# .toc is. Omit this whole block for a flat repo (.toc already at the root).
-move-folders:
-  ADDON/ADDON: ADDON
-# Optional: ship your curated CHANGELOG.md instead of a git-log dump. If you use
-# this, do NOT also list CHANGELOG.md under `ignore` or nothing gets shipped.
-manual-changelog:
-  filename: CHANGELOG.md
-  markup-type: markdown
 ```
+- [ ] **Changelog gotcha:** the packager *always* puts a changelog in the zip —
+      with no config it generates one from the git log (commit trailers and all)
+      and adds it **regardless of `ignore:`**. The `manual-changelog` block ships
+      your curated `CHANGELOG.md`; when you use it, keep `CHANGELOG.md` **out** of
+      `ignore:` (the packager has to read it).
+- [ ] **Do NOT reach for `move-folders` to keep a subfolder addon.** Tested
+      (2026-06-18): it does *not* point the packager at a nested `.toc` — TOC
+      discovery runs first, so a nested `ADDON/ADDON.toc` still dies with "Could
+      not find an addon TOC file," and a one-level `ADDON: ADDON` mapping produces
+      an empty build. Put the `.toc` at the repo root instead (Layout note up top;
+      migration steps at the bottom). `move-folders` is for splitting one repo into
+      multiple *output* addon folders, not for source discovery.
 
 ## 5. Local scripts  (no CI)
 - [ ] `scripts/check.sh` (chmod +x) — luacheck + tests, auto-detecting the interpreter:
@@ -89,7 +97,7 @@ manual-changelog:
 #!/usr/bin/env sh
 set -e
 cd "$(dirname "$0")/.."
-echo "==> luacheck"; luacheck ADDON
+echo "==> luacheck"; luacheck *.lua   # + Locales/*.lua etc. if your Lua is nested
 LUA=""
 for c in lua lua5.4 lua5.3 lua5.2 lua5.1 luajit; do
   command -v "$c" >/dev/null 2>&1 && { LUA="$c"; break; }
@@ -105,9 +113,9 @@ cd "$(dirname "$0")/.."
 [ "$#" -eq 0 ] && set -- -d   # -d = build zip into .release/, upload nothing
 curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh | bash -s -- "$@"
 ```
-  Works for both flat and nested repos — nested just needs the `move-folders`
-  directive in §4. To publish later: fill the X-* .toc IDs, export `CF_API_KEY` /
-  `WAGO_API_TOKEN` / `GITHUB_OAUTH`, and run with your own flags (no `-d`).
+  Needs `bash` >= 4.3 (the packager is bash; macOS ships 3.2 — `brew install bash`)
+  and the flat layout (Layout note up top). To publish later: fill the X-* .toc IDs,
+  export `CF_API_KEY` / `WAGO_API_TOKEN` / `GITHUB_OAUTH`, and run without `-d`.
 
 ## 6. Community-health docs
 - [ ] `CONTRIBUTING.md` — bug reports (addon ver, `GetBuildInfo()`, error text via
@@ -139,16 +147,18 @@ Be respectful, welcoming, constructive. Report concerns privately to <email>.
 
 ## 9. Gotchas (learned the hard way)
 - [ ] **Exec-bit noise:** AddOns-folder symlinks on macOS flip Lua/XML/.toc to `+x`.
-      Source files must NOT be executable. Fix before committing:
-      `chmod 644 ADDON/*.lua ADDON/*.xml ADDON/*.toc ADDON/Locales/*.lua`
+      Source files must NOT be executable. With the flat layout the files are at the
+      repo root, so fix before committing:
+      `chmod 644 *.lua *.xml *.toc Locales/*.lua`
       then verify `git diff --summary | grep "mode change"` is empty. Keep `scripts/` at 755.
       (Recurs? treat it as an env quirk; don't use `core.fileMode false` or your
       `scripts/` lose their `+x` in the index.)
-- [ ] **Nested layout + packager:** the packager only finds the `.toc` at the repo
-      root by default (and `-t <dir>` needs the `.git` there too, so it won't help).
-      If your addon lives in an `ADDON/` subfolder, add a `move-folders: ADDON/ADDON:
-      ADDON` block to `.pkgmeta` (§4) — that's the whole fix; no flattening. After
-      building, confirm the zip is a single `ADDON/` folder, not double-nested.
+- [ ] **Nested layout breaks the packager.** It only finds the `.toc` at the repo
+      root (`-t <dir>` needs `.git` there too, so it won't help), and `move-folders`
+      does NOT fix discovery (tested — see §4). The fix is the flat layout: Layout
+      note up top, migration steps at the bottom.
+- [ ] **Packager needs `bash` >= 4.3** (macOS ships 3.2 — `brew install bash`),
+      plus `git`, `curl`, `zip`.
 - [ ] **CHANGELOG** — keep one in "Keep a Changelog" format if you don't already.
 
 ## 10. Verify
