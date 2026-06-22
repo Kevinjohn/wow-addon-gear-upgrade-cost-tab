@@ -18,6 +18,8 @@ ignore:
   - CONTRIBUTING.md
   - SECURITY.md
   - CODE_OF_CONDUCT.md
+  - _wow-Addon-Publishing-Readiness.md
+  - .DS_Store
   # CHANGELOG.md is intentionally not ignored: manual-changelog (below) ships
   # this curated file as the changelog instead of a git-log dump.
 

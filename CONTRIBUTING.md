@@ -50,11 +50,21 @@ That runs `luacheck` (config in `.luacheckrc`) and the locale regression suite
 
 ## Building a release
 
-Releases are built locally with `scripts/release.sh`, which runs the BigWigs
-packager and writes a zip to `.release/`. The addon is at the repo root so the
-packager can find the `.toc` (see [docs/packaging.md](docs/packaging.md)); needs
-`bash` >= 4.3. Tag first for a clean version number (`git tag v0.8.0 && sh
-scripts/release.sh`), then attach the zip to a GitHub Release.
+Releases run in CI: pushing a `v*` tag triggers
+[`.github/workflows/release.yml`](.github/workflows/release.yml), which runs the
+BigWigs packager to build the zip, publish a GitHub Release, and (once
+configured) upload to CurseForge/Wago. CI does **not** run tests — run
+`sh scripts/check.sh` locally before tagging.
+
+```sh
+sh scripts/check.sh                     # luacheck + tests (the local gate)
+git tag vX.Y.Z && git push --tags       # CI packages + publishes
+```
+
+For a no-upload dry-run build into `.release/` (to inspect the zip first), run
+`sh scripts/release.sh` locally — the addon is at the repo root so the packager
+can find the `.toc` (see [docs/packaging.md](docs/packaging.md)); needs
+`bash` >= 4.3.
 
 ## License
 

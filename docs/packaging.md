@@ -12,8 +12,11 @@ at the end — the steps to convert another addon repo to the same layout.
   at the repo root (`$topdir/<package-as>.toc`). `package-as` renames the folder
   *inside the zip*; it cannot point the packager at a subfolder.
 - `.pkgmeta`'s `ignore:` list is what keeps the repo-only files (scripts, tests,
-  docs, README, CI templates, …) out of the shipped zip.
-- Build a no-upload zip with `sh scripts/release.sh` (needs `bash` >= 4.3).
+  docs, README, `.github/`, …) out of the shipped zip.
+- Releases run in CI: pushing a `v*` tag triggers
+  `.github/workflows/release.yml`, which builds the zip + GitHub Release (and
+  uploads to CurseForge/Wago once those are configured).
+- Build a no-upload zip locally with `sh scripts/release.sh` (needs `bash` >= 4.3).
 
 ## Why root layout (the non-obvious bit)
 
@@ -74,23 +77,42 @@ notes on upload.
 
 ## Building a release
 
+There are two ways to run the packager, both producing the same zip:
+
+**CI (the normal path).** `.github/workflows/release.yml` runs the BigWigs
+packager on every `v*` tag push. It builds the zip, creates a GitHub Release with
+the zip attached, and — once the projects/secrets exist (see below) — uploads to
+CurseForge and Wago. CI is **publish-only**: it does not run tests. Test locally
+first, then tag:
+
+```sh
+sh scripts/check.sh                        # luacheck + tests — the local gate
+git tag v0.8.0-alpha && git push --tags    # CI packages + publishes the rest
+```
+
+**Local dry-run.** For a no-upload build (to inspect the zip before tagging):
+
 ```sh
 sh scripts/release.sh          # no-upload build into .release/ (implicit -d)
 ```
 
-Requirements: `bash` >= 4.3 (the packager is a bash script; macOS ships 3.2, so
-`brew install bash`), plus `git`, `curl`, and `zip`. The packager reads the
-latest git tag for the version, so tag first:
+Requirements for the local build: `bash` >= 4.3 (the packager is a bash script;
+macOS ships 3.2, so `brew install bash`), plus `git`, `curl`, and `zip`. The
+packager reads the latest git tag for the version, so tag first if you want a
+real version stamp instead of a dev string.
 
-```sh
-git tag v0.8.0-alpha && git push --tags
-sh scripts/release.sh
-```
+### Turning on CurseForge / Wago uploads
 
-Publishing to CurseForge / Wago / a GitHub Release later: fill the
-`X-Curse-Project-ID` / `X-Wago-ID` stubs in the `.toc`, export `CF_API_KEY` /
-`WAGO_API_TOKEN` / `GITHUB_OAUTH`, and run `scripts/release.sh` without `-d` (or
-wire up the BigWigs GitHub Action, which runs the same packager).
+Both the CI workflow and `scripts/release.sh` skip a service until two things
+exist, so the workflow is safe to keep merged before you publish anywhere:
+
+1. **The id in the `.toc`** — uncomment and fill `X-Curse-Project-ID` /
+   `X-Wago-ID`. The packager skips a service whose id is absent.
+2. **The token** — for CI, add the `CF_API_TOKEN` / `WAGO_API_TOKEN` repo
+   secrets (Settings → Secrets and variables → Actions); the GitHub Release uses
+   the built-in `GITHUB_TOKEN`, no secret needed. For a local upload, export
+   `CF_API_KEY` / `WAGO_API_TOKEN` / `GITHUB_OAUTH` and run `scripts/release.sh`
+   without `-d`. The packager skips a service whose token is empty.
 
 ## Development symlink
 

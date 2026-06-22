@@ -1,9 +1,18 @@
 # WoW Addon — Release-Readiness Checklist
 
 A reusable checklist for getting a WoW addon's GitHub repo ready for a public
-release. This repo was set up with it; copy it into your other addon repos and
-work top to bottom. It assumes a lean, GitHub-only setup (no CI workflows;
-release zips built locally with the BigWigs packager).
+release. Copy it into your other addon repos and work top to bottom. It assumes a
+lean, GitHub-only setup (no CI workflows; release zips built locally with the
+BigWigs packager).
+
+> **This repo has since moved to CI publishing.** A `v*` tag push now runs
+> `.github/workflows/release.yml` (the BigWigs packager) to build the zip, create
+> the GitHub Release, and upload to CurseForge/Wago — see `docs/packaging.md` and
+> `_wow-Addon-Publishing-Readiness.md`. So in *this* repo the CI flow supersedes
+> the manual "build + `gh release create`" steps below (don't run §11's
+> `gh release create` on a tag CI already releases — it would collide). The
+> lean, local-only flow documented here is the **default for new repos** you copy
+> this into; adopt CI when you want hands-off uploads.
 
 > **Layout (do this first — it bites late otherwise).** Put the addon's loaded
 > files (`.toc`, `.lua`, any `Locales/`, `LICENSE`) at the **repository root**,

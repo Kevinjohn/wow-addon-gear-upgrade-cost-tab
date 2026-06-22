@@ -1,3 +1,7 @@
+# macOS / OS junk (don't rely on a global excludesfile — keep it repo-local so
+# it can never be committed and then shipped inside the addon zip)
+.DS_Store
+
 # Compiled Lua sources
 luac.out
 

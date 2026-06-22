@@ -1,16 +1,21 @@
 #!/usr/bin/env sh
-# Build a release zip with the BigWigs packager.
+# Build a release zip locally with the BigWigs packager.
 #
-# This repo keeps the addon in the GearUpgradeCostTab/ subfolder; the packager
-# is taught to find it by the `move-folders` directive in .pkgmeta, so it works
-# without flattening the repo.
+# Normal releases run in CI: pushing a `v*` tag triggers
+# .github/workflows/release.yml, which runs this same packager and also creates
+# the GitHub Release (and CurseForge/Wago uploads once configured). This script
+# is for local dry-runs — inspecting the zip before you tag.
+#
+# The addon lives at the repo root (flat layout), which is what the packager
+# needs: it discovers the .toc at $topdir/<package-as>.toc. `package-as` in
+# .pkgmeta names the folder inside the zip. See docs/packaging.md.
 #
 # By default this runs "dist only" (-d): it builds the zip into .release/ and
-# uploads nothing — the right mode until CurseForge / Wago projects exist.
+# uploads nothing.
 #
-# To publish later:
+# To upload from here instead of CI:
 #   1. Create the CurseForge / Wago projects and fill X-Curse-Project-ID /
-#      X-Wago-ID in GearUpgradeCostTab/GearUpgradeCostTab.toc.
+#      X-Wago-ID in GearUpgradeCostTab.toc.
 #   2. Export the tokens:
 #         export CF_API_KEY=...        # CurseForge
 #         export WAGO_API_TOKEN=...    # Wago

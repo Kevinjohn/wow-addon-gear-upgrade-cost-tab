@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- Automated releases: pushing a `v*` tag now runs a GitHub Actions workflow
+  (`.github/workflows/release.yml`) that builds the package with the BigWigs
+  packager, publishes a GitHub Release with the zip attached, and — once the
+  CurseForge/Wago project IDs and API-token secrets are set — uploads there too
+  (it safely skips those uploads until then). The workflow is publish-only;
+  tests stay local (`scripts/release.sh` remains for dry-run builds).
+
 ### Changed
 - Bumped `## Interface:` to `120007` for retail patch 12.0.7 so the addon loads
   without the "out of date" prompt.
