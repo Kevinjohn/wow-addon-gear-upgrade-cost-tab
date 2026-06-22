@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-06-22
+
 ### Added
 - Automated releases: pushing a `v*` tag now runs a GitHub Actions workflow
   (`.github/workflows/release.yml`) that builds the package with the BigWigs

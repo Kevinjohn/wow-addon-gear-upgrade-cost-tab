@@ -90,11 +90,12 @@ Confirm:
 ## Version: @project-version@
 ```
 
-- [ ] 🔧 **YOU** — `## X-Curse-Project-ID:` exists. Currently a **commented
-      stub** in the `.toc`. Uncomment + fill once the CurseForge project exists
-      (Phase 2). The packager skips the CF upload until this is a real numeric ID.
-- [ ] 🔧 **YOU** — `## X-Wago-ID:` exists. Same: commented stub; fill after the
-      Wago project exists.
+- [x] `## X-Curse-Project-ID:` exists. **Field added** to the `.toc` with a
+      `000000` placeholder. 🔧 **YOU** — replace `000000` with the real id once
+      the CurseForge project exists (Phase 2). The packager skips the CF upload
+      until this is a real id **and** the `CF_API_TOKEN` secret is set.
+- [x] `## X-Wago-ID:` exists. Field added with a placeholder. 🔧 **YOU** —
+      replace it with the real id after the Wago project exists.
 
 Example:
 

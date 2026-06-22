@@ -19,10 +19,12 @@
 ## IconTexture: Interface\Icons\INV_Misc_ArmorKit_17
 ## SavedVariables: GearUpgradeCostTabDB
 
-# To publish to CurseForge / Wago later, create the projects then uncomment
-# and fill these (the packager reads them to upload the build):
-# ## X-Curse-Project-ID: 000000
-# ## X-Wago-ID: 000000
+# Publishing IDs — replace the 000000 placeholders with the real project IDs
+# once the CurseForge / Wago projects exist. Until the matching CF_API_TOKEN /
+# WAGO_API_TOKEN repo secrets are also set, the packager skips those uploads, so
+# the placeholders are safe to ship in the meantime.
+## X-Curse-Project-ID: 000000
+## X-Wago-ID: 000000
 
 Locales\enUS.lua
 Locales\deDE.lua
