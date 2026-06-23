@@ -19,11 +19,11 @@
 ## IconTexture: Interface\Icons\INV_Misc_ArmorKit_17
 ## SavedVariables: GearUpgradeCostTabDB
 
-# Publishing IDs — replace the 000000 placeholders with the real project IDs
-# once the CurseForge / Wago projects exist. Until the matching CF_API_TOKEN /
-# WAGO_API_TOKEN repo secrets are also set, the packager skips those uploads, so
-# the placeholders are safe to ship in the meantime.
-## X-Curse-Project-ID: 000000
+# Publishing IDs. X-Curse-Project-ID is the real CurseForge project id;
+# X-Wago-ID is still a 000000 placeholder until the Wago project exists. The
+# packager skips an upload until its id is real AND the matching repo secret
+# (CF_API_TOKEN / WAGO_API_TOKEN) is set, so this is safe to ship as-is.
+## X-Curse-Project-ID: 1583795
 ## X-Wago-ID: 000000
 
 Locales\enUS.lua

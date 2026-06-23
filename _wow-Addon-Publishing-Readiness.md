@@ -90,10 +90,9 @@ Confirm:
 ## Version: @project-version@
 ```
 
-- [x] `## X-Curse-Project-ID:` exists. **Field added** to the `.toc` with a
-      `000000` placeholder. 🔧 **YOU** — replace `000000` with the real id once
-      the CurseForge project exists (Phase 2). The packager skips the CF upload
-      until this is a real id **and** the `CF_API_TOKEN` secret is set.
+- [x] `## X-Curse-Project-ID:` exists — set to the real id **1583795**. The CF
+      upload still needs the `CF_API_TOKEN` secret (Phase 3); until then the
+      packager skips it.
 - [x] `## X-Wago-ID:` exists. Field added with a placeholder. 🔧 **YOU** —
       replace it with the real id after the Wago project exists.
 
@@ -116,9 +115,9 @@ Example:
 
 Verify:
 
-- [ ] 🔧 **YOU** — CurseForge project exists.
-- [ ] 🔧 **YOU** — Correct CurseForge Project ID obtained.
-- [ ] 🔧 **YOU** — Project ID matches TOC. (paste the ID into `X-Curse-Project-ID`)
+- [x] CurseForge project exists. (id **1583795**)
+- [x] Correct CurseForge Project ID obtained. (**1583795**)
+- [x] Project ID matches TOC. (`X-Curse-Project-ID: 1583795`)
 - [ ] 🔧 **YOU** — Project is configured as a WoW Addon.
 - [ ] 🔧 **YOU** — Project description exists.
 - [ ] 🔧 **YOU** — Project icon exists (recommended).
