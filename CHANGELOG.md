@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-06-23
+
+### Changed
+- Set the addon's CurseForge project id (`X-Curse-Project-ID`); this is the
+  first build published to CurseForge. No in-game changes since 0.8.0.
+- Release CI now uses `actions/checkout@v5` (Node 24), clearing a deprecation
+  warning.
+
 ## [0.8.0] — 2026-06-22
 
 ### Added
