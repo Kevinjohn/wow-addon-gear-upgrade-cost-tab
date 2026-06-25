@@ -198,6 +198,18 @@ function ns.IsSetItem(itemLink)
 	return (select(16, C_Item.GetItemInfo(itemLink))) ~= nil
 end
 
+-- True when an equipped item still has ranks left to buy: it carries an
+-- upgrade track (so rank and maxRank were parsed from its tooltip) and sits
+-- below the final rank. Fully-upgraded items (rank == maxRank) and items
+-- with no track at all both return false. Deliberately independent of
+-- ns.TRACKS, so an unknown track with ranks remaining still counts as
+-- upgradeable -- its row shows with "?" costs rather than vanishing. The
+-- "Show fully upgraded gear" filter keeps exactly the rows this returns true
+-- for; everything else is "nothing left to do here".
+function ns.IsUpgradeable(rank, maxRank)
+	return rank ~= nil and maxRank ~= nil and rank < maxRank
+end
+
 -- Returns { maxed = true } when fully upgraded, nil for unknown tracks, or
 -- { nextCost, totalCost, nextIsFree } in crests of the track's Dawncrest.
 -- maxRank parsed from the tooltip takes priority over the static table, so a

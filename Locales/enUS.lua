@@ -38,6 +38,14 @@ ns.L = setmetatable({
 	-- vendor's own CONFIRM_UPGRADE_ITEM_BIND warning.
 	INCLUDE_WARBOUND = "Include Warbound items",
 	INCLUDE_WARBOUND_TIP = "Warbound items are hidden by default because upgrading one causes it to become soulbound.",
+	-- Display filter (default on). When off, the Equipped list drops every
+	-- row you can't act on -- fully upgraded gear and trackless gear alike --
+	-- leaving only what crests or gold can still improve.
+	SHOW_FULLY_UPGRADED = "Show fully upgraded gear",
+	SHOW_FULLY_UPGRADED_TIP = "When off, hides equipped gear you can't upgrade: both fully upgraded items and gear with no upgrade track.",
+	-- Shown under the Equipped header when "Show fully upgraded gear" is off
+	-- and every equipped item is already maxed or has no upgrade track.
+	EQUIPPED_NONE_UPGRADEABLE = "Nothing equipped can be upgraded right now.",
 	-- Toggles the crest-totals footer below the lists.
 	SHOW_CRESTS = "Show my crests",
 	COL_SLOT = "Slot",

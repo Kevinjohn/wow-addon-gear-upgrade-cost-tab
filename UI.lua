@@ -395,7 +395,19 @@ function GearUpgradeCostTabMixin:OnShow()
 			GameTooltip_AddHighlightLine(tooltip, L.PRIORITISE_TIER_TIP)
 		end)
 
-		-- Display options, separated from the bag filters above.
+		-- Display options, each on its own divider below the bag filters.
+		-- "Show fully upgraded gear" is a list filter like the bag options
+		-- (ToggleOption rebuilds); its tooltip flags that it also drops
+		-- trackless equipped gear, which would otherwise be a surprising
+		-- disappearance for a label that only names "fully upgraded".
+		rootDescription:CreateDivider()
+		local fullyUpgraded = rootDescription:CreateCheckbox(L.SHOW_FULLY_UPGRADED, IsOptionEnabled, ToggleOption, "showFullyUpgraded")
+		fullyUpgraded:SetSelectionIgnored()
+		fullyUpgraded:SetTooltip(function(tooltip)
+			GameTooltip_AddHighlightLine(tooltip, L.SHOW_FULLY_UPGRADED_TIP)
+		end)
+		-- "Show my crests" toggles the footer (chrome, not list contents), so
+		-- its own divider sets it apart from the filter above.
 		rootDescription:CreateDivider()
 		local crests = rootDescription:CreateCheckbox(L.SHOW_CRESTS, IsOptionEnabled, ToggleShowCrests, "showCrests")
 		crests:SetSelectionIgnored()
@@ -466,9 +478,24 @@ function GearUpgradeCostTabMixin:Rebuild()
 		extraBottom = equippedExpanded and HEADER_TO_ROWS_EXTRA or nil,
 	}
 	if equippedExpanded then
+		-- "Show fully upgraded gear" off keeps only rows with ranks left to
+		-- buy, hiding both maxed gear and trackless items (the "—" rows). A
+		-- fully geared character can filter the whole section away, so an empty
+		-- result gets a note rather than a bare header. The bag lists need no
+		-- equivalent: BuildBagRows never emits a fully-upgraded row.
+		local hideDone = GearUpgradeCostTabDB.showFullyUpgraded == false
+		local shown, hidAny = 0, false
 		for _, row in ipairs(ns.BuildEquippedRows()) do
 			row.mode = mode
-			elements[#elements + 1] = row
+			if hideDone and not ns.IsUpgradeable(row.rank, row.maxRank) then
+				hidAny = true
+			else
+				elements[#elements + 1] = row
+				shown = shown + 1
+			end
+		end
+		if shown == 0 and hidAny then
+			elements[#elements + 1] = { isNote = true, text = L.EQUIPPED_NONE_UPGRADEABLE }
 		end
 		elements[#elements + 1] = { isSpacer = true, height = ROWS_TO_HEADER_SPACER }
 	end
@@ -618,6 +645,12 @@ bootstrap:SetScript("OnEvent", function()
 	end
 	if GearUpgradeCostTabDB.showCrests == nil then
 		GearUpgradeCostTabDB.showCrests = false
+	end
+	-- Display filter, default ON: new users see their whole paper doll, and
+	-- those who only want remaining work untick it. Off hides every equipped
+	-- row that can't be acted on (maxed and trackless alike).
+	if GearUpgradeCostTabDB.showFullyUpgraded == nil then
+		GearUpgradeCostTabDB.showFullyUpgraded = true
 	end
 	SetupCharacterFrameTab()
 end)
