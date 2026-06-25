@@ -48,9 +48,9 @@ upgrading one binds it to a single character.
 
 ## Screenshots
 
-<!-- Drop your in-game captures into docs/img/ and they'll appear here. -->
+<!-- In-game captures live in screenshots/. -->
 
-![The Gear Upgrades tab in the character window](docs/img/tab.png)
+![The Gear Upgrades tab in the character window: the Equipped list showing each item's level, upgrade rank and crest costs, above the "In Bag (next upgrade free)" and "In Bag (crest required)" lists](screenshots/gear-upgrade-tab-minimal.png)
 
 ## Options
 
@@ -80,6 +80,10 @@ The dropdown at the top of the tab has three parts.
 
 **Display:**
 
+- **Show fully upgraded gear** (on by default) — when turned off, the
+  Equipped list hides anything you can't upgrade right now, both fully
+  upgraded items and gear with no upgrade track, so you see only what is
+  left to improve.
 - **Show my crests** (off by default) — adds a bar at the bottom of the
   tab showing how many of each crest you own; the lists shrink a little
   to make room.

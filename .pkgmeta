@@ -13,6 +13,7 @@ ignore:
   - scripts
   - tests
   - docs
+  - screenshots
   - README.md
   - README-dev.md
   - CHANGELOG-dev.md
