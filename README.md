@@ -95,7 +95,7 @@ Korean, and Chinese (Simplified and Traditional).
 
 ## Something look wrong?
 
-This addon is in alpha. The cost numbers are verified in game where
+The cost numbers are verified in game where
 possible, but if a cost, a discount, or a missing item looks off, please
 [report it](https://github.com/Kevinjohn/wow-addon-gear-upgrade-cost-tab/issues)
 — a screenshot of the row and the item's tooltip helps a lot.

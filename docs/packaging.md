@@ -87,7 +87,7 @@ first, then tag:
 
 ```sh
 sh scripts/check.sh                        # luacheck + tests — the local gate
-git tag v0.8.0-alpha && git push --tags    # CI packages + publishes the rest
+git tag v0.9.0 && git push --tags          # CI packages + publishes the rest
 ```
 
 **Local dry-run.** For a no-upload build (to inspect the zip before tagging):

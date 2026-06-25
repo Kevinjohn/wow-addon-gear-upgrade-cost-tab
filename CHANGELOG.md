@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-06-25
+
+### Changed
+- Graduated out of alpha. The addon is no longer labelled "alpha"; the
+  README's "Something look wrong?" note drops the alpha disclaimer, and the
+  bug-report template and packaging docs use a non-alpha version example. No
+  in-game behaviour change.
+
 ## [0.8.1] — 2026-06-23
 
 ### Changed
