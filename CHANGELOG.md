@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.9.1] — 2026-06-25
+
+### Fixed
+- CI now actually uploads releases to CurseForge. The release workflow passed
+  the API token as `CF_API_TOKEN`, but the pinned `BigWigsMods/packager@v2`
+  reads it from `CF_API_KEY`, so it saw an empty token and silently skipped the
+  CurseForge upload — v0.9.0 reached the GitHub Releases page but never appeared
+  on CurseForge. The secret is now passed under both names. No in-game change.
+
 ## [0.9.0] — 2026-06-25
 
 ### Changed
