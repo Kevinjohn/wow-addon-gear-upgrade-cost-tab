@@ -45,6 +45,20 @@ jobs:
         with:
           fetch-depth: 0 # full history + tags so the packager can read the version
 
+      - name: Trim changelog header for published notes
+        # The packager ships CHANGELOG.md verbatim as the GitHub Release body,
+        # the CurseForge changelog, and the in-zip changelog. Drop the repo-file
+        # header (the "# Changelog" title, its tagline, and the dev-notes HTML
+        # comment) so the published notes start at the first version heading and
+        # show the version list only. Keeps full history; just removes the
+        # boilerplate. Runs on the CI checkout, so the committed CHANGELOG.md
+        # keeps its header for anyone browsing the repo. The rule — "everything
+        # from the first '## ' heading onward" — is independent of the exact
+        # title/tagline wording, so edits to those can't break it.
+        run: |
+          awk '/^## / { keep = 1 } keep' CHANGELOG.md > CHANGELOG.trimmed
+          mv CHANGELOG.trimmed CHANGELOG.md
+
       - name: Package and release
         uses: BigWigsMods/packager@v2
         env:
