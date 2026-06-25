@@ -9,6 +9,25 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-06-25
+
+### Added
+- **Show fully upgraded gear** (on by default), a display toggle on its own
+  divider below the bag filters, with *Show my crests* on a second divider
+  beneath it (each display option separated by its own divider). Unticking it
+  filters the Equipped list down to rows that still have ranks to buy — both
+  fully-upgraded items (`rank == maxRank`) and trackless gear (the "—" rows:
+  crafted, heirlooms, legacy) are hidden, per the "only show what's actually
+  upgradable" request. The bag lists need no change: `GetBagUpgradeCosts`
+  already returns nil for a maxed item, so a fully-upgraded piece never reaches
+  them. New `ns.IsUpgradeable(rank, maxRank)` (Data.lua) is the single gate,
+  deliberately independent of `ns.TRACKS` so an unknown track with ranks left
+  still counts as upgradeable (renders with "?" costs) rather than being
+  filtered out. Because a fully-geared character can empty the whole section,
+  it now shows `EQUIPPED_NONE_UPGRADEABLE` instead of a bare header. New locale
+  strings `SHOW_FULLY_UPGRADED`, `SHOW_FULLY_UPGRADED_TIP`, and
+  `EQUIPPED_NONE_UPGRADEABLE` are translated across all nine locales.
+
 ## [0.9.1] — 2026-06-25
 
 ### Fixed
