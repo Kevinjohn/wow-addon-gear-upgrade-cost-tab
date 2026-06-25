@@ -9,6 +9,19 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.10.2] — 2026-06-25
+
+### Changed
+- Changelog publishing tidy-up — no code change, addon zip byte-identical to
+  v0.10.0/v0.10.1. Two things ship for the first time here: (1) CI strips the
+  CHANGELOG.md header (everything above the first `## ` heading) before
+  packaging, so the GitHub Release body and CurseForge changelog drop the
+  `# Changelog` title, tagline, and dev-notes HTML comment; (2) CHANGELOG.md
+  rewritten into short, prose-free, one-change-per-line bullets. Cutting this
+  release is what carries both through to CurseForge, whose changelog is set at
+  upload time (v0.10.1's stayed as the old dump and can't be rewritten via the
+  upload token).
+
 ## [0.10.1] — 2026-06-25
 
 ### Changed

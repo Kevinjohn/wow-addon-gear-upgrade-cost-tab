@@ -4,6 +4,10 @@ What changed in each release. Newest first.
 
 <!-- Developer-level detail (APIs, data sources, rejected approaches) lives in CHANGELOG-dev.md. -->
 
+## 0.10.2 — 2026-06-25
+- Cleaner, easier-to-scan changelog on the release pages.
+- No in-game changes.
+
 ## 0.10.1 — 2026-06-25
 - Added a screenshot to the project page.
 - Documented **Show fully upgraded gear** in the README.
