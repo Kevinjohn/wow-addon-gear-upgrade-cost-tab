@@ -48,8 +48,14 @@ jobs:
       - name: Package and release
         uses: BigWigsMods/packager@v2
         env:
-          # The packager reads CF_API_TOKEN (CurseForge), WAGO_API_TOKEN (Wago),
-          # and GITHUB_OAUTH (for the GitHub Release). Missing token or id => skip.
+          # packager@v2's release.sh reads the CurseForge token from CF_API_KEY.
+          # CF_API_TOKEN is only the name on the (unreleased) master branch, so
+          # passing just CF_API_TOKEN makes v2 silently skip the CurseForge upload
+          # (no error — it just sees an empty token). Pass the same secret under
+          # both names: works on v2 now, and survives a later bump to a version
+          # that switches to CF_API_TOKEN. WAGO_API_TOKEN / GITHUB_OAUTH already
+          # match v2. Missing token or id => that service is skipped.
+          CF_API_KEY: ${{ secrets.CF_API_TOKEN }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
