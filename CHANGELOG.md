@@ -4,6 +4,9 @@ What changed in each release, in plain language. Newest first.
 
 <!-- Developer-level detail (APIs, data sources, rejected approaches) lives in CHANGELOG-dev.md. -->
 
+## 0.10.1 — 2026-06-25
+- Added a screenshot to the project page and documented the **Show fully upgraded gear** option in the README. No in-game changes.
+
 ## 0.10.0 — 2026-06-25
 - Added **Show fully upgraded gear** (on by default): untick it to hide equipped gear you can't upgrade right now — both fully upgraded items and gear with no upgrade track — so the list shows only what crests or gold can still improve.
 

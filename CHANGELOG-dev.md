@@ -9,6 +9,16 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.10.1] — 2026-06-25
+
+### Changed
+- README: the Screenshots section now shows the first in-game capture
+  (`screenshots/gear-upgrade-tab-minimal.png`), replacing the never-created
+  `docs/img/tab.png` placeholder, and the Display options now document the
+  v0.10.0 **Show fully upgraded gear** toggle. `.pkgmeta` ignores `screenshots/`
+  so the repo-only captures stay out of the addon zip. Docs only — the packaged
+  addon is byte-identical to v0.10.0.
+
 ## [0.10.0] — 2026-06-25
 
 ### Added
