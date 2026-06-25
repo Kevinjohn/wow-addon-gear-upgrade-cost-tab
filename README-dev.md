@@ -152,4 +152,6 @@ the repo root with any Lua ≥ 5.1: `lua tests/run.lua`.
 
 Lint with [luacheck](https://github.com/lunarmodules/luacheck): `luacheck *.lua Locales/*.lua` (config in `.luacheckrc`). Test with `lua tests/run.lua`. Or just run `sh scripts/check.sh`, which does both.
 
-Release notes live in [CHANGELOG.md](CHANGELOG.md).
+Player-facing release notes live in [CHANGELOG.md](CHANGELOG.md) (this is the
+file shipped to CurseForge/Wago as the changelog); the technical history is in
+[CHANGELOG-dev.md](CHANGELOG-dev.md).

@@ -15,6 +15,7 @@ ignore:
   - docs
   - README.md
   - README-dev.md
+  - CHANGELOG-dev.md
   - CONTRIBUTING.md
   - SECURITY.md
   - CODE_OF_CONDUCT.md

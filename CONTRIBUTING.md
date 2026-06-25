@@ -44,7 +44,8 @@ That runs `luacheck` (config in `.luacheckrc`) and the locale regression suite
 (`lua tests/run.lua`). Please also:
 
 - keep each PR to one self-contained change,
-- update [`CHANGELOG.md`](CHANGELOG.md), and
+- add a short, plain-language note to [`CHANGELOG.md`](CHANGELOG.md) and the
+  technical detail to [`CHANGELOG-dev.md`](CHANGELOG-dev.md), and
 - match the existing style — Lua 5.1, tabs for indentation, conventions encoded
   in `.luacheckrc`.
 
