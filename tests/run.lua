@@ -366,12 +366,104 @@ local function testSlotMaxItemLevel()
 		"GetSlotMaxItemLevel: single-slot head empty, no API -> nil")
 end
 
+-- ns.GetSlotMaxItemLevel's weapon-set fallback: all weapon-ish equip
+-- locations share one "set" watermark (Data.lua's WEAPON_SET_EQUIP_LOCS /
+-- GetWeaponSetProvenLevel comments) -- one equipped 2H proves its own level
+-- on its own, two equipped 1H prove the LOWER of the two, and a lone 1H
+-- proves nothing. A bag 2H only gets to use that proof if it actually came
+-- from an equipped 2H (or a 2H-equivalent ranged weapon); a 1H-only set
+-- gives a bag 2H nothing (partial discount is handled elsewhere, not here).
+local function testWeaponSetMaxItemLevel()
+	local ns = loadAddon("enUS", nil)
+
+	-- Same equipped[invSlot] = itemLevel fixture as testSlotMaxItemLevel,
+	-- plus a per-link registry so C_Item.GetItemInfoInstant can report an
+	-- equip location + weapon subclass for the equipped main hand link
+	-- ("link16") when a case needs it to look like a two-hander/ranged
+	-- weapon. Unregistered links (the default) return all-nil, same as the
+	-- production client before item data is cached.
+	local equipped = {}
+	local itemInfo = {}
+
+	_G.GetInventoryItemLink = function(_, invSlot)
+		return equipped[invSlot] and ("link" .. invSlot) or nil
+	end
+	_G.C_Item.GetDetailedItemLevelInfo = function(link)
+		local invSlot = tonumber(link:match("^link(%d+)$"))
+		return invSlot and equipped[invSlot]
+	end
+	_G.C_Item.GetItemInfoInstant = function(link)
+		local info = itemInfo[link]
+		if not info then return nil end
+		return nil, nil, nil, info.equipLoc, nil, nil, info.subclassID
+	end
+
+	local function setEquipped(t)
+		equipped = t
+		itemInfo = {}
+	end
+
+	local function setMainHandInfo(equipLoc, subclassID)
+		itemInfo["link" .. INVSLOT_MAINHAND] = { equipLoc = equipLoc, subclassID = subclassID }
+	end
+
+	local function setWatermark(value)
+		_G.C_ItemUpgrade = value
+			and { GetHighWatermarkForItem = function() return value, 0 end }
+			or {}
+	end
+
+	setEquipped({ [INVSLOT_MAINHAND] = 480, [INVSLOT_OFFHAND] = 450 })
+	setWatermark(nil)
+	check(ns.GetSlotMaxItemLevel("bagweapon", "INVTYPE_WEAPON") == 450,
+		"GetSlotMaxItemLevel: two 1H equipped (480/450), no API -> lower (450)")
+
+	setEquipped({ [INVSLOT_MAINHAND] = 480 })
+	check(ns.GetSlotMaxItemLevel("bagweapon", "INVTYPE_WEAPON") == nil,
+		"GetSlotMaxItemLevel: one 1H main hand (480), empty off hand -> nil")
+
+	setEquipped({ [INVSLOT_MAINHAND] = 480 })
+	setMainHandInfo("INVTYPE_2HWEAPON")
+	check(ns.GetSlotMaxItemLevel("bagweapon", "INVTYPE_WEAPON") == 480,
+		"GetSlotMaxItemLevel: equipped 2H (480) -> full set proof (480) for a 1H bag item")
+
+	setEquipped({ [INVSLOT_MAINHAND] = 480 })
+	setMainHandInfo("INVTYPE_2HWEAPON")
+	check(ns.GetSlotMaxItemLevel("bagweapon", "INVTYPE_2HWEAPON") == 480,
+		"GetSlotMaxItemLevel: equipped 2H (480) -> full set proof (480) for a bag 2H")
+
+	setEquipped({ [INVSLOT_MAINHAND] = 480, [INVSLOT_OFFHAND] = 480 })
+	check(ns.GetSlotMaxItemLevel("bagweapon", "INVTYPE_2HWEAPON") == nil,
+		"GetSlotMaxItemLevel: two 1H equipped (480/480) -> no proof for a bag 2H (partial only)")
+
+	setEquipped({ [INVSLOT_MAINHAND] = 480, [INVSLOT_OFFHAND] = 470 })
+	check(ns.GetSlotMaxItemLevel("bagshield", "INVTYPE_HOLDABLE") == 470,
+		"GetSlotMaxItemLevel: main hand 1H (480) + shield (470) -> lower (470)")
+
+	setEquipped({ [INVSLOT_MAINHAND] = 480, [INVSLOT_OFFHAND] = 450 })
+	setWatermark(470)
+	check(ns.GetSlotMaxItemLevel("bagweapon", "INVTYPE_WEAPON") == 470,
+		"GetSlotMaxItemLevel: two 1H (480/450), API watermark 470 -> API wins (470)")
+
+	setEquipped({ [INVSLOT_MAINHAND] = 480 })
+	setMainHandInfo("INVTYPE_RANGEDRIGHT", 19)
+	setWatermark(nil)
+	check(ns.GetSlotMaxItemLevel("bagweapon", "INVTYPE_WEAPON") == nil,
+		"GetSlotMaxItemLevel: equipped wand (480), empty off hand -> nil (wand is one-handed)")
+
+	setEquipped({ [INVSLOT_MAINHAND] = 480 })
+	setMainHandInfo("INVTYPE_RANGEDRIGHT", 3)
+	check(ns.GetSlotMaxItemLevel("bagweapon", "INVTYPE_2HWEAPON") == 480,
+		"GetSlotMaxItemLevel: equipped gun (480) -> full set proof (480) for a bag 2H")
+end
+
 for _, entry in ipairs(LOCALE_DATA) do
 	testLocale(entry)
 end
 testReorderedFormatStrings("%2$d/%3$d: %1$s", "3/6: Champion", 3, 6)
 testReorderedFormatStrings("%3$d/%2$d %1$s", "6/3 Champion", 3, 6)
 testSlotMaxItemLevel()
+testWeaponSetMaxItemLevel()
 
 io.write(("%d checks, %d failures\n"):format(checks, #failures))
 if #failures > 0 then

@@ -162,13 +162,63 @@ end
 -- verified 2026-07): "Slots you have two of require reaching an ilvl with
 -- two different items to define HWM". The watermark API already returns the
 -- two-item-aware value, so only our equipped fallback below must special-case
--- these. Weapons have their own "set" rule and are deliberately NOT listed:
--- a max over the two weapon slots can still over-estimate there, but the
--- right fix needs 2H-vs-1H awareness, not the both-slots rule.
+-- these. Weapons have their own "set" rule, handled separately below.
 local TWO_ITEM_EQUIP_LOCS = {
 	INVTYPE_FINGER = true,
 	INVTYPE_TRINKET = true,
 }
+
+-- Equip locations that share the WEAPON watermark. Blizzard_ItemUpgradeUI's
+-- WeaponSetHighWatermarkSlots comment (live branch, verified 2026-07): "all
+-- weapons benefit from the highest ilvl 'set' of all weapon slots (set = one
+-- 2H, two 1H, or main + offhand)", and "2H weapons can receive a partial
+-- discount if player has upgraded 1H weapons" — partial, so 1H progress never
+-- proves a FREE 2H upgrade.
+local WEAPON_SET_EQUIP_LOCS = {
+	INVTYPE_WEAPON = true,
+	INVTYPE_2HWEAPON = true,
+	INVTYPE_WEAPONMAINHAND = true,
+	INVTYPE_WEAPONOFFHAND = true,
+	INVTYPE_HOLDABLE = true,
+	INVTYPE_SHIELD = true,
+	INVTYPE_RANGED = true,
+	INVTYPE_RANGEDRIGHT = true,
+}
+
+local WAND_SUBCLASS = 19 -- Enum.ItemWeaponSubclass.Wand
+
+-- True when the item fills both hands by itself and so is a complete weapon
+-- set on its own. INVTYPE_RANGEDRIGHT covers guns and crossbows (two-handed)
+-- but also wands (one-handed), hence the subclass check.
+local function IsTwoHander(equipLoc, subclassID)
+	return equipLoc == "INVTYPE_2HWEAPON" or equipLoc == "INVTYPE_RANGED"
+		or (equipLoc == "INVTYPE_RANGEDRIGHT" and subclassID ~= WAND_SUBCLASS)
+end
+
+local function GetEquippedItemLevel(invSlot)
+	local link = GetInventoryItemLink("player", invSlot)
+	local itemLevel = link and C_Item.GetDetailedItemLevelInfo(link)
+	return itemLevel and math.floor(itemLevel + 0.5) or 0, link
+end
+
+-- Item level the equipped weapon set proves reached, plus whether that proof
+-- comes from a two-hander. An equipped 2H is a complete set at its own level;
+-- otherwise a set needs BOTH hands filled and only counts at the lower of the
+-- two. A lone one-hander proves nothing, like a lone ring.
+local function GetWeaponSetProvenLevel()
+	local mainLevel, mainLink = GetEquippedItemLevel(INVSLOT_MAINHAND)
+	if mainLink then
+		local _, _, _, mainLoc, _, _, mainSubclass = C_Item.GetItemInfoInstant(mainLink)
+		if IsTwoHander(mainLoc, mainSubclass) then
+			return mainLevel, true
+		end
+	end
+	local offLevel = GetEquippedItemLevel(INVSLOT_OFFHAND)
+	if mainLevel > 0 and offLevel > 0 then
+		return math.min(mainLevel, offLevel), false
+	end
+	return 0, false
+end
 
 -- Best-known "maximum item level for this slot": the watermark API when it
 -- works, otherwise (and at minimum) what the currently equipped item(s) prove
@@ -178,18 +228,27 @@ local TWO_ITEM_EQUIP_LOCS = {
 -- hold an item at it, so the fallback is the LOWER of the two equipped item
 -- levels — and nothing at all while either slot is empty. Taking the higher
 -- one was v0.10.x's falsely-free-rings bug: one Champion 6/6 ring marked
--- every bag ring free up to it.
+-- every bag ring free up to it. Weapons all share the set watermark; a bag
+-- two-hander additionally requires the proof to BE a two-hander, because a
+-- one-hand set only earns a 2H a partial (not free) discount.
 function ns.GetSlotMaxItemLevel(itemLink, equipLoc)
 	local best = ns.GetHighWatermark(itemLink) or 0
 	local proven -- item level the equipped item(s) prove reached
-	for _, invSlot in ipairs(ns.EQUIP_LOC_SLOTS[equipLoc] or {}) do
-		local equippedLink = GetInventoryItemLink("player", invSlot)
-		local itemLevel = equippedLink and C_Item.GetDetailedItemLevelInfo(equippedLink)
-		itemLevel = itemLevel and math.floor(itemLevel + 0.5) or 0
-		if TWO_ITEM_EQUIP_LOCS[equipLoc] then
-			proven = math.min(proven or itemLevel, itemLevel)
-		elseif itemLevel > 0 then
-			proven = math.max(proven or 0, itemLevel)
+	if WEAPON_SET_EQUIP_LOCS[equipLoc] then
+		local setLevel, fromTwoHander = GetWeaponSetProvenLevel()
+		local _, _, _, bagLoc, _, _, bagSubclass = C_Item.GetItemInfoInstant(itemLink)
+		if IsTwoHander(bagLoc or equipLoc, bagSubclass) and not fromTwoHander then
+			setLevel = 0
+		end
+		proven = setLevel
+	else
+		for _, invSlot in ipairs(ns.EQUIP_LOC_SLOTS[equipLoc] or {}) do
+			local itemLevel = GetEquippedItemLevel(invSlot)
+			if TWO_ITEM_EQUIP_LOCS[equipLoc] then
+				proven = math.min(proven or itemLevel, itemLevel)
+			elseif itemLevel > 0 then
+				proven = math.max(proven or 0, itemLevel)
+			end
 		end
 	end
 	best = math.max(best, proven or 0)

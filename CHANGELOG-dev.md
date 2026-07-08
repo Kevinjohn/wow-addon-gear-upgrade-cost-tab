@@ -25,6 +25,30 @@ follows [Keep a Changelog](https://keepachangelog.com).
   `testSlotMaxItemLevel` in tests/run.lua covering both-equipped,
   single-equipped, none-equipped, and API-overrides-fallback cases for
   fingers, trinkets, and a single-slot regression check (head).
+- `ns.GetSlotMaxItemLevel` (Data.lua) now applies Blizzard's weapon-SET rule
+  to all weapon/off-hand equip locations instead of taking the max of the two
+  equipped hands. Blizzard_ItemUpgradeUI's `WeaponSetHighWatermarkSlots`
+  comment (live branch, verified 2026-07): "all weapons benefit from the
+  highest ilvl 'set' of all weapon slots (set = one 2H, two 1H, or main +
+  offhand)" and "2H weapons can receive a partial discount if player has
+  upgraded 1H weapons". The equipped fallback now proves: an equipped
+  two-hander's item level for any bag weapon; otherwise the LOWER of main
+  hand and off-hand, only while both are filled (a lone one-hander proves
+  nothing, like a lone ring). A bag two-hander additionally requires the
+  proof to come from an equipped two-hander, since a one-hand set earns a 2H
+  only a partial (not free) discount. Two-handedness is detected from
+  `C_Item.GetItemInfoInstant` equip loc (`INVTYPE_2HWEAPON`,
+  `INVTYPE_RANGED`, or `INVTYPE_RANGEDRIGHT` when the weapon subclass isn't
+  19/wand — guns and crossbows share `INVTYPE_RANGEDRIGHT` with one-handed
+  wands). New `WEAPON_SET_EQUIP_LOCS` table, `IsTwoHander` and
+  `GetWeaponSetProvenLevel` helpers. Whether
+  `C_ItemUpgrade.GetHighWatermarkForItem` is itself set-aware for weapons is
+  unverified (Blizzard's UI never calls it — it reads the server-computed
+  `discountInfo` from `GetItemUpgradeItemInfo`); the API value is still
+  trusted as before, only our fallback got conservative. Added
+  `testWeaponSetMaxItemLevel` in tests/run.lua (9 cases: 1H pairs, lone 1H,
+  2H proving 1H and 2H bag items, 1H set NOT proving a bag 2H, shield +
+  holdable, API-beats-fallback, wand vs gun subclass).
 
 ## [0.10.2] — 2026-06-25
 
