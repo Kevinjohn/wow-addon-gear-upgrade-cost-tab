@@ -4,11 +4,9 @@ What changed in each release. Newest first.
 
 <!-- Developer-level detail (APIs, data sources, rejected approaches) lives in CHANGELOG-dev.md. -->
 
-## Unreleased
-- Fixed rings and trinkets being marked as free upgrades too early.
-- The game only unlocks free upgrades for those slots once you have **two** items at the higher level; the maths now matches.
-- Fixed the same for weapons and off-hands: free upgrades unlock per weapon **set** (one two-hander, two one-handers, or main hand plus off-hand).
-- A lone one-hander no longer marks other weapons free, and one-handers no longer mark two-handers free.
+## 0.10.3 — 2026-07-08
+- Fixed rings, trinkets, weapons, and off-hands being marked as free upgrades too early.
+- The game needs **two** items (or a full weapon set — one two-hander, two one-handers, or main hand plus off-hand) at the higher level first; the maths now matches.
 
 ## 0.10.2 — 2026-06-25
 - Cleaner, easier-to-scan changelog on the release pages.

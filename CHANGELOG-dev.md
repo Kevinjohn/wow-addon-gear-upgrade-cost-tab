@@ -7,7 +7,7 @@ behind localized data, and the approaches tried and rejected. Plain-language
 summaries for players live in [CHANGELOG.md](CHANGELOG.md). Newest first;
 follows [Keep a Changelog](https://keepachangelog.com).
 
-## [Unreleased]
+## [0.10.3] — 2026-07-08
 
 ### Fixed
 - `ns.GetSlotMaxItemLevel` (Data.lua) no longer marks rings/trinkets as free
