@@ -9,6 +9,23 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+### Fixed
+- `ns.GetSlotMaxItemLevel` (Data.lua) no longer marks rings/trinkets as free
+  upgrades off a single equipped item. Blizzard_ItemUpgradeUI's
+  `DualSlotHighWatermarkSlots` comment (live branch, verified 2026-07): "Slots
+  you have two of require reaching an ilvl with two different items to define
+  HWM" — the game only raises a two-item slot's free-upgrade watermark once
+  BOTH items reach a level. The equipped-item fallback (used when the
+  watermark API is unavailable) previously took the max of the two equipped
+  rings/trinkets, so one Champion 6/6 ring falsely marked every bag ring free
+  up to its item level. It now takes the LOWER of the two equipped item
+  levels for `INVTYPE_FINGER`/`INVTYPE_TRINKET` (new `TWO_ITEM_EQUIP_LOCS`
+  table), contributing nothing while either slot is empty; single-item slots
+  are unaffected (still the max of equipped item levels). Added
+  `testSlotMaxItemLevel` in tests/run.lua covering both-equipped,
+  single-equipped, none-equipped, and API-overrides-fallback cases for
+  fingers, trinkets, and a single-slot regression check (head).
+
 ## [0.10.2] — 2026-06-25
 
 ### Changed

@@ -305,11 +305,73 @@ local function testReorderedFormatStrings(formatString, line, rank, maxRank)
 		("synthetic: '%s' parses '%s' as %d/%d"):format(formatString, line, rank, maxRank))
 end
 
+-- ns.GetSlotMaxItemLevel: watermark API result vs. the equipped-item
+-- fallback, including the two-item slots (rings, trinkets) where a level
+-- only counts once BOTH slots hold an item at it (see Data.lua's
+-- TWO_ITEM_EQUIP_LOCS comment for the bug this guards against).
+local function testSlotMaxItemLevel()
+	local ns = loadAddon("enUS", nil)
+
+	-- Override installWowGlobals' single-head-item fixture with a
+	-- configurable equipped[invSlot] = itemLevel map, keyed by inventory
+	-- slot id (fingers 11/12, trinkets 13/14, head 1).
+	local equipped = {}
+	_G.GetInventoryItemLink = function(_, invSlot)
+		return equipped[invSlot] and ("link" .. invSlot) or nil
+	end
+	_G.C_Item.GetDetailedItemLevelInfo = function(link)
+		local invSlot = tonumber(link:match("^link(%d+)$"))
+		return invSlot and equipped[invSlot]
+	end
+
+	local function setEquipped(t)
+		equipped = t
+	end
+
+	local function setWatermark(value)
+		_G.C_ItemUpgrade = value
+			and { GetHighWatermarkForItem = function() return value, 0 end }
+			or {}
+	end
+
+	setEquipped({ [INVSLOT_FINGER1] = 480, [INVSLOT_FINGER2] = 450 })
+	setWatermark(nil)
+	check(ns.GetSlotMaxItemLevel("ringlink", "INVTYPE_FINGER") == 450,
+		"GetSlotMaxItemLevel: both rings equipped (480/450), no API -> lower (450)")
+
+	setEquipped({ [INVSLOT_FINGER1] = 480 })
+	check(ns.GetSlotMaxItemLevel("ringlink", "INVTYPE_FINGER") == nil,
+		"GetSlotMaxItemLevel: only one ring equipped (480), no API -> nil")
+
+	setEquipped({})
+	check(ns.GetSlotMaxItemLevel("ringlink", "INVTYPE_FINGER") == nil,
+		"GetSlotMaxItemLevel: no rings equipped, no API -> nil")
+
+	setEquipped({ [INVSLOT_FINGER1] = 480, [INVSLOT_FINGER2] = 450 })
+	setWatermark(470)
+	check(ns.GetSlotMaxItemLevel("ringlink", "INVTYPE_FINGER") == 470,
+		"GetSlotMaxItemLevel: rings 480/450, API returns 470 -> API wins (470)")
+
+	setWatermark(nil)
+	setEquipped({ [INVSLOT_TRINKET1] = 460, [INVSLOT_TRINKET2] = 440 })
+	check(ns.GetSlotMaxItemLevel("trinketlink", "INVTYPE_TRINKET") == 440,
+		"GetSlotMaxItemLevel: both trinkets equipped (460/440), no API -> lower (440)")
+
+	setEquipped({ [INVSLOT_HEAD] = 480 })
+	check(ns.GetSlotMaxItemLevel("headlink", "INVTYPE_HEAD") == 480,
+		"GetSlotMaxItemLevel: single-slot head equipped (480), no API -> 480 (max rule unchanged)")
+
+	setEquipped({})
+	check(ns.GetSlotMaxItemLevel("headlink", "INVTYPE_HEAD") == nil,
+		"GetSlotMaxItemLevel: single-slot head empty, no API -> nil")
+end
+
 for _, entry in ipairs(LOCALE_DATA) do
 	testLocale(entry)
 end
 testReorderedFormatStrings("%2$d/%3$d: %1$s", "3/6: Champion", 3, 6)
 testReorderedFormatStrings("%3$d/%2$d %1$s", "6/3 Champion", 3, 6)
+testSlotMaxItemLevel()
 
 io.write(("%d checks, %d failures\n"):format(checks, #failures))
 if #failures > 0 then

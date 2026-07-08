@@ -4,6 +4,10 @@ What changed in each release. Newest first.
 
 <!-- Developer-level detail (APIs, data sources, rejected approaches) lives in CHANGELOG-dev.md. -->
 
+## Unreleased
+- Fixed rings and trinkets being marked as free upgrades too early.
+- The game only unlocks free upgrades for those slots once you have **two** items at the higher level; the maths now matches.
+
 ## 0.10.2 — 2026-06-25
 - Cleaner, easier-to-scan changelog on the release pages.
 - No in-game changes.

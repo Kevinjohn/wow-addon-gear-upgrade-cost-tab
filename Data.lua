@@ -156,19 +156,43 @@ function ns.GetHighWatermark(itemLink)
 	return best > 0 and best or nil
 end
 
+-- Slots the character wears two of at once. The game only raises their
+-- free-upgrade watermark once TWO different items reach an item level;
+-- Blizzard_ItemUpgradeUI's DualSlotHighWatermarkSlots comment (live branch,
+-- verified 2026-07): "Slots you have two of require reaching an ilvl with
+-- two different items to define HWM". The watermark API already returns the
+-- two-item-aware value, so only our equipped fallback below must special-case
+-- these. Weapons have their own "set" rule and are deliberately NOT listed:
+-- a max over the two weapon slots can still over-estimate there, but the
+-- right fix needs 2H-vs-1H awareness, not the both-slots rule.
+local TWO_ITEM_EQUIP_LOCS = {
+	INVTYPE_FINGER = true,
+	INVTYPE_TRINKET = true,
+}
+
 -- Best-known "maximum item level for this slot": the watermark API when it
--- works, otherwise (and at minimum) the highest item level currently equipped
--- in the slot(s) this item could occupy. Equipping raises the real watermark,
--- so the equipped fallback can only under-estimate, never falsely mark free.
+-- works, otherwise (and at minimum) what the currently equipped item(s) prove
+-- the watermark has reached. For single-item slots that is the equipped item
+-- level (equipping raises the real watermark, so it can only under-estimate).
+-- For two-item slots (rings, trinkets) a level only counts once BOTH slots
+-- hold an item at it, so the fallback is the LOWER of the two equipped item
+-- levels — and nothing at all while either slot is empty. Taking the higher
+-- one was v0.10.x's falsely-free-rings bug: one Champion 6/6 ring marked
+-- every bag ring free up to it.
 function ns.GetSlotMaxItemLevel(itemLink, equipLoc)
 	local best = ns.GetHighWatermark(itemLink) or 0
+	local proven -- item level the equipped item(s) prove reached
 	for _, invSlot in ipairs(ns.EQUIP_LOC_SLOTS[equipLoc] or {}) do
 		local equippedLink = GetInventoryItemLink("player", invSlot)
 		local itemLevel = equippedLink and C_Item.GetDetailedItemLevelInfo(equippedLink)
-		if itemLevel then
-			best = math.max(best, math.floor(itemLevel + 0.5))
+		itemLevel = itemLevel and math.floor(itemLevel + 0.5) or 0
+		if TWO_ITEM_EQUIP_LOCS[equipLoc] then
+			proven = math.min(proven or itemLevel, itemLevel)
+		elseif itemLevel > 0 then
+			proven = math.max(proven or 0, itemLevel)
 		end
 	end
+	best = math.max(best, proven or 0)
 	return best > 0 and best or nil
 end
 
